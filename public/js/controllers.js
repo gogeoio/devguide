@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-function MapCtrl($scope, $services) {
+function MapCtrl($scope, services) {
   $scope.initMap = function() {
     var options = {
       attributionControl: false,
@@ -20,10 +20,14 @@ function MapCtrl($scope, $services) {
     $scope.map = L.map('map', options);
     $scope.map.addLayer(ggl);
 
-    $scope.addLayerPoints($services);
+    $scope.addLayerPoints();
   }
 
   $scope.addLayerPoints = function() {
-    $scope.map
+    // add your collection
+    this.points = L.tileLayer('https://{s}.gogeo.io/map/demos/' + services.config.collection + '/{z}/{x}/{y}/tile.png?mapkey=' + services.config.mapkey,
+      { isBaseLayer: false, subdomains: ['m1', 'm2', 'm3'] }
+    );
+    this.map.addLayer(this.points);
   }
 }

@@ -11,3 +11,15 @@ var app = angular.module('gogeo-devguide', ['gogeo-devguide.filters', 'gogeo-dev
       }
     ]
   );
+
+app.factory('services',
+  function($rootScope, $http) {
+    return {
+      config: {
+        'apikey': 'cc4fb567-66aa-4206-8e51-401954da86c1',
+        'mapkey': '7252e0f7-c0f0-4c0b-98eb-c37fc4a5effa',
+        'collection': '50k_empresas04'
+      }
+    }
+  }
+);

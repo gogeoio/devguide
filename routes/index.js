@@ -3,11 +3,17 @@
  * GET home page.
  */
 
+var config = require('../config');
+
 exports.index = function(req, res){
   res.render('index');
 };
 
-exports.partial = function (req, res) {
+exports.partial = function(req, res) {
   var name = req.params.name;
   res.render('partials/partial' + name);
+};
+
+exports.config = function(req, res) {
+  res.status(200).json(config);
 };

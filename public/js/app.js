@@ -12,13 +12,58 @@ var app = angular.module('gogeo-devguide', ['gogeo-devguide.filters', 'gogeo-dev
     ]
   );
 
+app.run(
+  function($rootScope, services) {
+    services.config(
+      function(config) {
+        $rootScope.config = config;
+      }
+    );
+  }
+);
+
 app.factory('services',
   function($rootScope, $http) {
     return {
-      config: {
-        'apikey': 'cc4fb567-66aa-4206-8e51-401954da86c1',
-        'mapkey': '7252e0f7-c0f0-4c0b-98eb-c37fc4a5effa',
-        'collection': '50k_empresas04'
+      config: function(callback) {
+        $http.get('/config').success(callback);
+      },
+      configureUrl: function() {
+        var url = $rootScope.config.url;
+
+        if (!_.string.startsWith(url, 'http')) {
+          url = 'http://' + url;
+        }
+
+        return url;
+      },
+      clusterUrl: function() {
+        var url = this.configureUrl();
+
+        var database = $rootScope.config.database;
+        var collection = $rootScope.config.collection;
+        var mapkey = $rootScope.config.mapkey;
+
+        url = url + '/' + database + '/' + collection;
+        url = url + '/{z}/{x}/{y}/cluster.json';
+        url = url + '?mapkey=' + mapkey;
+
+        return url;
+      },
+      pngUrl: function() {
+        var url = this.configureUrl();
+
+        var database = $rootScope.config.database;
+        var collection = $rootScope.config.collection;
+        var mapkey = $rootScope.config.mapkey;
+
+        url = url + '/' + database + '/' + collection;
+        url = url + '/{z}/{x}/{y}/tile.png';
+        url = url + '?mapkey=' + mapkey;
+        // That is to not cut the marker.
+        url = url + '&buffer=16';
+
+        return url;
       }
     }
   }

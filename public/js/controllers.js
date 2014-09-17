@@ -3,44 +3,57 @@
 /* Controllers */
 
 function MapCtrl($rootScope, $scope, services) {
-  // Initiate map and base layers (png, cluster, etc)
+  // Global variables
+  $rootScope.selectedLayer = null;
+  $rootScope.selectedStyle = null;
+  $rootScope.newStyle = 'default';
+  $rootScope.points = null;
+  $rootScope.group = new L.LayerGroup();
+
+  // Initiate map and base layers (google, png and cluster)
   $scope.initMap = function() {
     var options = {
       attributionControl: false,
       minZoom: 4,
       maxZoom: 23,
-      zoom: 4,
-      center: [32.54, -99.49]
+      zoom: 9,
+      center: [35.209681, -101.834810]
     };
     var ggl = new L.Google('ROADMAP', options);
 
-    $scope.map = L.map('map', options);
-    $scope.map.addLayer(ggl);
+    $rootScope.map = L.map('map', options);
+    $rootScope.map.addLayer(ggl);
 
-    $scope.createPngLayer();
+    $rootScope.points = $scope.createPngLayer();
     $scope.createClusterLayer();
-    $scope.group = new L.LayerGroup();
-    $scope.group.addTo($scope.map);
+    $rootScope.group.addTo($rootScope.map);
 
-    $scope.map.on('zoomend', $scope.addProperLayer);
+    $rootScope.map.on('zoomend', $scope.addProperLayer);
 
     $scope.addProperLayer();
   };
 
-  // Choose which layer display
+  // Choose which layer display (png or cluster)
   $scope.addProperLayer = function(event) {
-    var zoom = $scope.map.getZoom();
-    var zoomToRenderPng = $rootScope.config.zoomToRenderPng;
-
-    // Clear
-    $scope.group.clearLayers();
+    $rootScope.zoom = $rootScope.map.getZoom();
+    $rootScope.zoomToRenderPng = $rootScope.config.zoomToRenderPng;
 
     // Render png points
-    if (zoom >= zoomToRenderPng) {
-      $scope.group.addLayer($scope.points);
+    if ($scope.zoom >= $scope.zoomToRenderPng) {
+      if ($rootScope.selectedStyle === 'cluster' || $rootScope.selectedStyle !== $rootScope.newStyle) {
+        $rootScope.group.clearLayers();
+        $rootScope.selectedStyle = $rootScope.newStyle;
+        $rootScope.selectedLayer = $scope.createPngLayer($rootScope.selectedStyle);
+      }
     // Render cluster
-    } else {
-      $scope.group.addLayer($scope.cluster);
+    } else if ($rootScope.selectedStyle !== 'cluster') {
+      $rootScope.group.clearLayers();
+      $rootScope.selectedLayer = $scope.cluster;
+      $rootScope.selectedStyle = 'cluster';
+    }    
+
+    if ($rootScope.group.getLayers().length == 0 && $rootScope.selectedLayer) {
+      $rootScope.group.addLayer($rootScope.selectedLayer);
     }
   };
 
@@ -65,16 +78,83 @@ function MapCtrl($rootScope, $scope, services) {
   };
 
   // Create a png layer
-  $scope.createPngLayer = function() {
+  $scope.createPngLayer = function(style) {
     var database = $rootScope.config.database;
     var collection = $rootScope.config.collection;
     var mapkey = $rootScope.config.mapkey;
 
-    var url = services.pngUrl();
+    var url = services.pngUrl(style);
 
     // create a collection to render png points
-    $scope.points = L.tileLayer(url,
+    return L.tileLayer(url,
       { isBaseLayer: false, subdomains: $rootScope.config.subdomains }
     );
+  };
+
+  // Change style of layer
+  $scope.setLayerStyle = function(style) {
+    $rootScope.newStyle = style;
+    $scope.addProperLayer();
+  };
+
+  // Function called when click on navbar link
+  $scope.applyStyle = function(type) {
+    if ($rootScope.styles.indexOf(type) == -1) {
+      $scope.publishStyle(type);
+    } else {
+      $scope.setLayerStyle(type);
+    }
+  };
+
+  // Publish a new style if it has not been yet.
+  $scope.publishStyle = function(type) {
+    var style = $scope.getStyle(type);
+    services.publishStyle(style, type,
+      function(result) {
+        if (result) {
+          $rootScope.styles.push(type);
+          $scope.setLayerStyle(type);
+          console.log('Style registered successfully!');
+        }
+      }
+    );
+  };
+
+  // Returns CartoCSS corresponding to the kind of style
+  $scope.getStyle = function(type) {
+    var style = '';
+    if (type === 'marker') {
+      style += '#marker {';
+      style += '  point-file: url("http://i.imgur.com/DvyonuW.png");';
+      style += '}';
+    } else if (type === 'heat_map') {
+      style += '#heat_map {';
+      style += '   first/marker-fill: #ff0000;'
+      style += '   first/marker-opacity: 0.01;'
+      style += '   first/marker-width: 80;'
+      style += '   first/marker-line-width: 0;'
+      style += '   first/marker-placement: point;'
+      style += '   first/marker-allow-overlap: true;'
+      style += '   first/marker-comp-op: lighten;'
+      style += '';
+      style += '   second/marker-fill: #b30000;'
+      style += '   second/marker-opacity: 0.02;'
+      style += '   second/marker-width:50;'
+      style += '   second/marker-line-width: 0;'
+      style += '   second/marker-placement: point;'
+      style += '   second/marker-allow-overlap: true;'
+      style += '   second/marker-comp-op: lighten;'
+      style += '';
+      style += '   third/marker-fill: #b3002d;'
+      style += '   third/marker-opacity: 0.04;'
+      style += '   third/marker-width:20;'
+      style += '   third/marker-line-width: 0;'
+      style += '   third/marker-placement: point;'
+      style += '   third/marker-allow-overlap: true;'
+      style += '   third/marker-comp-op: lighten;'
+      style += '}';
+    }
+
+    return style;
   };
 }

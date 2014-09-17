@@ -1,5 +1,5 @@
 module.exports = {
-  'url': 'gogeo.io/map',
+  'url': 'gogeo.io',
   'apikey': 'YOUR_API_KEY',
   'mapkey': 'YOUR_MAP_KEY',
   'database': 'YOUR_DATABASE_NAME',

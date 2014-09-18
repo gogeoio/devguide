@@ -5,9 +5,19 @@ var app = angular.module('gogeo-devguide', ['gogeo-devguide.filters', 'gogeo-dev
   config(
     ['$routeProvider', '$locationProvider',
       function($routeProvider, $locationProvider) {
-        $routeProvider.when('/map', {templateUrl: 'partial/1', controller: MapCtrl});
+        $routeProvider.when('/map', {templateUrl: 'partial/map', controller: MapCtrl});
         $routeProvider.otherwise({redirectTo: '/map'});
         $locationProvider.html5Mode(true);
       }
     ]
   );
+
+app.run(
+  function($rootScope, services) {
+    services.config(
+      function(config) {
+        $rootScope.config = config;
+      }
+    );
+  }
+);

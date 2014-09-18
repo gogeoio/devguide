@@ -1,5 +1,4 @@
-/**
-
+/*
 This is a plugin made based on:
 - [1] Leaflet.utfgrid and
 - [2] Leaflet.markercluster plugins;
@@ -338,13 +337,15 @@ L.TileCluster = L.Class.extend({
 		var childCount = cluster.count;
 
 		var c = ' marker-cluster-';
-		if (childCount < 10) {
-			c += 'small';
-		} else if (childCount < 100) {
-			c += 'medium';
-		} else {
-			c += 'large';
-		}
+    if (childCount < 100) {
+      c += 'small';
+    } else if (childCount < 10000) {
+      c += 'medium';
+    } else if (childCount < 100000) {
+      c += 'large';
+    } else {
+      c += 'extra-large';
+    }
 
 		var iconPoint = new L.Point(40, 40);
 		var klass = 'small';

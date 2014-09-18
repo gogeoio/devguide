@@ -7,25 +7,27 @@ function MapCtrl($rootScope, $scope, services) {
   $rootScope.selectedLayer = null;
   $rootScope.selectedStyle = null;
   $rootScope.newStyle = 'default';
-  $rootScope.points = null;
-  $rootScope.group = new L.LayerGroup();
+  $rootScope.pngLayer = null; // Our png layer
+  $rootScope.cluster = null; // Our cluster layer
+  $rootScope.group = new L.LayerGroup(); // Responsible for managing map layers
 
-  // Initiate map and base layers (google, png and cluster)
   $scope.initMap = function() {
     var options = {
       attributionControl: false,
-      minZoom: 4,
-      maxZoom: 23,
-      zoom: 9,
-      center: [35.209681, -101.834810]
+      minZoom: 3,
+      maxZoom: 15,
+      zoom: 10,
+      center: [34.735150, -92.299475]
     };
     var ggl = new L.Google('ROADMAP', options);
 
     $rootScope.map = L.map('map', options);
     $rootScope.map.addLayer(ggl);
 
-    $rootScope.points = $scope.createPngLayer();
-    $scope.createClusterLayer();
+    $rootScope.group.addTo($rootScope.map);
+
+    $rootScope.pngLayer = $scope.createPngLayer();
+    $rootScope.cluster = $scope.createClusterLayer();
     $rootScope.group.addTo($rootScope.map);
 
     $rootScope.map.on('zoomend', $scope.addProperLayer);
@@ -74,7 +76,7 @@ function MapCtrl($rootScope, $scope, services) {
 
     var clusterUrl = services.clusterUrl();
 
-    $scope.cluster = L.tileCluster(clusterUrl, options);
+    return L.tileCluster(clusterUrl, options);
   };
 
   // Create a png layer

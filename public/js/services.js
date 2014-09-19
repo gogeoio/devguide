@@ -2,7 +2,7 @@
 
 /* Services */
 var app = angular.module('gogeo-devguide.services', []).
-  value('version', '0.3.0')
+  value('version', '0.4.0')
   ;
 
 app.factory('services',
@@ -24,7 +24,7 @@ app.factory('services',
 
         return url;
       },
-      pngUrl: function(style) {
+      pngUrl: function(style, geom) {
         var prefix = null;
 
         if ($rootScope.config.subdomains) {
@@ -45,13 +45,19 @@ app.factory('services',
         // Avoid browser and angular caches
         url = url + '&_=' + Math.random();
 
+        // Add stylename to URL
         if (style && style !== 'default') {
           url = url + '&stylename=' + style;
         }
 
+        // Add spatial filter to URL
+        if (geom) {
+          url = url + '&geom=' + JSON.stringify(geom);
+        }
+
         return url;
       },
-      clusterUrl: function() {
+      clusterUrl: function(geom) {
         var url = this.configureUrl();
 
         var database = $rootScope.config.database;
@@ -63,6 +69,11 @@ app.factory('services',
         url = url + '?mapkey=' + mapkey;
         // Avoid browser and angular caches
         url = url + '&_=' + Math.random();
+
+        // Add spatial filter to URL
+        if (geom) {
+          url = url + '&geom=' + JSON.stringify(geom);
+        }
 
         return url;
       },
@@ -76,7 +87,7 @@ app.factory('services',
 
         return url;
       },
-      utfUrl: function(style) {
+      utfUrl: function(style, geom) {
         // URL is the same of tile.png service
         // just replace tile.png by tile.json
         var url = this.pngUrl(style);
@@ -84,6 +95,11 @@ app.factory('services',
         url = url + '&key=name';
         url = url + '&fields[]=name';
         url = url + '&callback={cb}';
+
+        // Add spatial filter to URL
+        if (geom) {
+          url = url + '&geom=' + JSON.stringify(geom);
+        }
 
         return url;
       },

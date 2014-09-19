@@ -11,13 +11,14 @@ function MapCtrl($rootScope, $scope, services) {
   $rootScope.cluster = null; // Our cluster layer
   $rootScope.utfgridLayer = null; // UTFGrid layer
   $rootScope.group = new L.LayerGroup(); // Responsible for managing map layers
+  $rootScope.geom = null; // Spatial filter
 
   $scope.initMap = function() {
     var options = {
       attributionControl: false,
       minZoom: 3,
       maxZoom: 15,
-      zoom: 10,
+      zoom: 15,
       center: [34.735150, -92.299475]
     };
     var ggl = new L.Google('ROADMAP', options);
@@ -34,6 +35,11 @@ function MapCtrl($rootScope, $scope, services) {
     $rootScope.map.on('zoomend', $scope.addProperLayer);
 
     $scope.addProperLayer();
+    $scope.addControls();
+  };
+
+  $scope.styleChanged = function() {
+    return $rootScope.selectedStyle !== $rootScope.newStyle;
   };
 
   // Choose which layer display (png or cluster)
@@ -41,9 +47,15 @@ function MapCtrl($rootScope, $scope, services) {
     $rootScope.zoom = $rootScope.map.getZoom();
     $rootScope.zoomToRenderPng = $rootScope.config.zoomToRenderPng;
 
+    var geomHasChanged = false;
+    if ($rootScope.geom != $rootScope.newGeom) {
+      $rootScope.geom = $rootScope.newGeom;
+      geomHasChanged = true;
+    }
+
     // Render png points
     if ($scope.zoom >= $scope.zoomToRenderPng) {
-      if ($rootScope.selectedStyle === 'cluster' || $rootScope.selectedStyle !== $rootScope.newStyle) {
+      if ($rootScope.selectedStyle === 'cluster' || $scope.styleChanged() || geomHasChanged) {
         $rootScope.group.clearLayers();
         $rootScope.selectedStyle = $rootScope.newStyle;
 
@@ -55,8 +67,9 @@ function MapCtrl($rootScope, $scope, services) {
         $rootScope.group.addLayer($rootScope.selectedLayer);
       }
     // Render cluster
-    } else if ($rootScope.selectedStyle !== 'cluster') {
+    } else if ($rootScope.selectedStyle !== 'cluster' || geomHasChanged) {
       $rootScope.group.clearLayers();
+      $scope.cluster = $scope.createClusterLayer();
       $rootScope.selectedLayer = $scope.cluster;
       $rootScope.selectedStyle = 'cluster';
       $rootScope.group.addLayer($rootScope.selectedLayer);
@@ -78,14 +91,14 @@ function MapCtrl($rootScope, $scope, services) {
       }
     };
 
-    var clusterUrl = services.clusterUrl();
+    var clusterUrl = services.clusterUrl($rootScope.geom);
 
     return L.tileCluster(clusterUrl, options);
   };
 
   // Create a png layer
   $scope.createPngLayer = function(style) {
-    var url = services.pngUrl(style);
+    var url = services.pngUrl(style, $rootScope.geom);
 
     // create a collection to render png points
     return L.tileLayer(url,
@@ -95,7 +108,7 @@ function MapCtrl($rootScope, $scope, services) {
 
   // Create a UTFGrid layer
   $scope.createUtfgridLayer = function(style) {
-    var url = services.utfUrl(style);
+    var url = services.utfUrl(style, $rootScope.geom);
 
     var options = {
       useJsonP: true,
@@ -194,5 +207,88 @@ function MapCtrl($rootScope, $scope, services) {
     }
 
     return style;
+  };
+
+  // Add controls to draw tool
+  $scope.addControls = function() {
+    $rootScope.editableLayers = new L.FeatureGroup();
+    $rootScope.map.addLayer($rootScope.editableLayers);
+
+    var options = {
+      position: 'topleft',
+      draw: {
+        polyline: false, // Turns off this drawing tool
+        polygon: false, // Turns off this drawing tool
+        circle: false, // Turns off this drawing tool
+        rectangle: {
+          shapeOptions: {
+            clickable: true
+          }
+        },
+        marker: false
+      },
+      edit: false,
+      thrash: true
+    };
+
+    var drawControl = new L.Control.Draw(options);
+    $rootScope.map.addControl(drawControl);
+
+    $scope.addResetButton();
+
+    $rootScope.map.on('draw:created',
+      function(e) {
+        var type = e.layerType,
+            layer = e.layer;
+
+        $rootScope.editableLayers.addLayer(layer);
+
+        var geojson = $rootScope.editableLayers.toGeoJSON();
+        $rootScope.newGeom = geojson.features[0].geometry;
+
+        $scope.addProperLayer();
+
+        $scope.toggleResetButton(true);
+      }
+    );
+
+    $rootScope.map.on('draw:drawstart',
+      function(e) {
+        $rootScope.editableLayers.clearLayers();
+      }
+    );
+  };
+
+  // Add trash icon to reset spatial filter
+  $scope.addResetButton = function() {
+    var resetButton = document.createElement('a');
+    
+    resetButton.setAttribute('id', 'resetButton');
+    resetButton.setAttribute('class', 'leaflet-draw-edit-remove leaflet-disabled');
+    resetButton.setAttribute('href', '#');
+    resetButton.setAttribute('title', 'Reset area');
+
+    var drawToolbar = $('.leaflet-draw-toolbar.leaflet-bar.leaflet-draw-toolbar-top');
+    drawToolbar.append(resetButton);
+
+    $('#resetButton').on('click',
+      function(event) {
+        $rootScope.editableLayers.clearLayers();
+        $scope.toggleResetButton(false);
+        $rootScope.newGeom = null;
+        $scope.addProperLayer();
+        event.preventDefault();
+        return;
+      }
+    );
+  };
+
+  // Change class trash icon
+  $scope.toggleResetButton = function(enable) {
+    if (enable) {
+      $('#resetButton').prop('class', 'leaflet-draw-edit-remove');
+    } else {
+      $('#resetButton').prop('class', 'leaflet-draw-edit-remove leaflet-disabled');
+    }
   };
 }

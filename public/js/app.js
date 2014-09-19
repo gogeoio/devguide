@@ -17,11 +17,11 @@ app.run(
     services.config(
       function(config) {
         $rootScope.config = config;
-        $rootScope.styles = [];
+        $rootScope.styles = ['default'];
 
         services.getStyles(
           function(styles) {
-            $rootScope.styles = styles;
+            $rootScope.styles = $rootScope.styles.concat(styles);
           }
         );
       }

@@ -2,7 +2,7 @@
 
 /* Services */
 var app = angular.module('gogeo-devguide.services', []).
-  value('version', '0.2.0')
+  value('version', '0.3.0')
   ;
 
 app.factory('services',

@@ -337,10 +337,11 @@ function MapCtrl($rootScope, $scope, $timeout, services) {
       search: function() {
         try {
           $rootScope.newQuery = JSON.parse(this._textarea.value);
-          $scope.addProperLayer();
         } catch(e) {
           console.error('Error', e);
+          $rootScope.newQuery = null;
         }
+        $scope.addProperLayer();
       },
       _createButton: function() {
         var div = this._createDiv('row-fluid');

@@ -13,13 +13,14 @@ app.factory('services',
       },
       configureUrl: function(prefix) {
         if (!prefix) {
-          prefix = 'maps.';
+          // prefix = 'maps.';
+          prefix = '';
         }
 
         var url = $rootScope.config.url;
 
         if (!_.string.startsWith(url, 'http')) {
-          url = 'https://' + prefix + url;
+          url = 'http://' + prefix + url;
         }
 
         return url;
@@ -28,7 +29,8 @@ app.factory('services',
         var prefix = null;
 
         if ($rootScope.config.subdomains) {
-          prefix = '{s}.';
+          // prefix = '{s}.';
+          prefix = '';
         }
 
         var url = this.configureUrl(prefix);
@@ -42,6 +44,7 @@ app.factory('services',
         url = url + '?mapkey=' + mapkey;
         // That is to not cut the marker.
         url = url + '&buffer=16';
+        // Avoid browser and angular caches
         url = url + '&_=' + Math.random();
 
         if (style && style !== 'default') {
@@ -60,6 +63,7 @@ app.factory('services',
         url = url + '/map/' + database + '/' + collection;
         url = url + '/{z}/{x}/{y}/cluster.json';
         url = url + '?mapkey=' + mapkey;
+        // Avoid browser and angular caches
         url = url + '&_=' + Math.random();
 
         return url;
@@ -74,11 +78,23 @@ app.factory('services',
 
         return url;
       },
+      utfUrl: function() {
+        // URL is the same of tile.png service
+        // just replace tile.png by tile.json
+        var url = this.pngUrl();
+        url = url.replace('tile.png', 'tile.json');
+        url = url + '&key=name';
+        url = url + '&fields[]=name';
+        url = url + '&callback={cb}';
+
+        return url;
+      },
       getStyles: function(callback) {
         var url = this.styleUrl();
 
         url = url + '?mapkey=' + $rootScope.config.mapkey;
         url = url + '&byName=true';
+        // Avoid browser and angular caches
         url = url + '&_=' + Math.random();
 
         $http.get(url).success(callback);

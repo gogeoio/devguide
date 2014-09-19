@@ -9,6 +9,7 @@ function MapCtrl($rootScope, $scope, services) {
   $rootScope.newStyle = 'default';
   $rootScope.pngLayer = null; // Our png layer
   $rootScope.cluster = null; // Our cluster layer
+  $rootScope.utfgridLayer = null; // UTFGrid layer
   $rootScope.group = new L.LayerGroup(); // Responsible for managing map layers
 
   $scope.initMap = function() {
@@ -45,16 +46,19 @@ function MapCtrl($rootScope, $scope, services) {
       if ($rootScope.selectedStyle === 'cluster' || $rootScope.selectedStyle !== $rootScope.newStyle) {
         $rootScope.group.clearLayers();
         $rootScope.selectedStyle = $rootScope.newStyle;
+
+        $rootScope.utfgridLayer = $scope.createUtfgridLayer($rootScope.selectedStyle);
+        $rootScope.group.addLayer($scope.utfgridLayer);
+        $scope.addUtfgridBehavior();
+
         $rootScope.selectedLayer = $scope.createPngLayer($rootScope.selectedStyle);
+        $rootScope.group.addLayer($rootScope.selectedLayer);
       }
     // Render cluster
     } else if ($rootScope.selectedStyle !== 'cluster') {
       $rootScope.group.clearLayers();
       $rootScope.selectedLayer = $scope.cluster;
       $rootScope.selectedStyle = 'cluster';
-    }    
-
-    if ($rootScope.group.getLayers().length == 0 && $rootScope.selectedLayer) {
       $rootScope.group.addLayer($rootScope.selectedLayer);
     }
   };
@@ -81,15 +85,47 @@ function MapCtrl($rootScope, $scope, services) {
 
   // Create a png layer
   $scope.createPngLayer = function(style) {
-    var database = $rootScope.config.database;
-    var collection = $rootScope.config.collection;
-    var mapkey = $rootScope.config.mapkey;
-
     var url = services.pngUrl(style);
 
     // create a collection to render png points
     return L.tileLayer(url,
       { isBaseLayer: false, subdomains: $rootScope.config.subdomains }
+    );
+  };
+
+  // Create a UTFGrid layer
+  $scope.createUtfgridLayer = function(style) {
+    var url = services.utfUrl(style);
+
+    var options = {
+      useJsonP: true,
+      // goGeo UTFGrids don't work well with other resolution
+      resolution: 4,
+      subdomains: $rootScope.config.subdomains
+    };
+
+    return new L.UtfGrid(url, options);
+  };
+
+  $scope.addUtfgridBehavior = function() {
+    // Show data name in mouseover event
+    $rootScope.utfgridLayer.on('mouseover',
+      function (e) {
+        if (e.data) {
+          var content = '<h3>' + e.data.name + '</h3>';
+          var popup = L.popup()
+            .setLatLng(e.latlng)
+            .setContent(content)
+            .openOn($rootScope.map);
+        }
+      }
+    );
+
+    // Close popup in mouseout event
+    $rootScope.utfgridLayer.on('mouseout',
+      function(e) {
+        $rootScope.map.closePopup();
+      }
     );
   };
 

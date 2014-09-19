@@ -13,14 +13,13 @@ app.factory('services',
       },
       configureUrl: function(prefix) {
         if (!prefix) {
-          // prefix = 'maps.';
-          prefix = '';
+          prefix = 'maps.';
         }
 
         var url = $rootScope.config.url;
 
         if (!_.string.startsWith(url, 'http')) {
-          url = 'http://' + prefix + url;
+          url = 'https://' + prefix + url;
         }
 
         return url;
@@ -29,8 +28,7 @@ app.factory('services',
         var prefix = null;
 
         if ($rootScope.config.subdomains) {
-          // prefix = '{s}.';
-          prefix = '';
+          prefix = '{s}.';
         }
 
         var url = this.configureUrl(prefix);

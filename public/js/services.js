@@ -76,10 +76,10 @@ app.factory('services',
 
         return url;
       },
-      utfUrl: function() {
+      utfUrl: function(style) {
         // URL is the same of tile.png service
         // just replace tile.png by tile.json
-        var url = this.pngUrl();
+        var url = this.pngUrl(style);
         url = url.replace('tile.png', 'tile.json');
         url = url + '&key=name';
         url = url + '&fields[]=name';

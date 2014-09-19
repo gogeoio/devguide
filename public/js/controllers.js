@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-function MapCtrl($rootScope, $scope, services) {
+function MapCtrl($rootScope, $scope, $timeout, services) {
   // Global variables
   $rootScope.selectedLayer = null;
   $rootScope.selectedStyle = null;
@@ -12,6 +12,7 @@ function MapCtrl($rootScope, $scope, services) {
   $rootScope.utfgridLayer = null; // UTFGrid layer
   $rootScope.group = new L.LayerGroup(); // Responsible for managing map layers
   $rootScope.geom = null; // Spatial filter
+  $rootScope.query = null; // Relational filter
 
   $scope.initMap = function() {
     var options = {
@@ -36,8 +37,12 @@ function MapCtrl($rootScope, $scope, services) {
 
     $scope.addProperLayer();
     $scope.addControls();
+
+    var queryControl = $scope.relationalFilterControler();
+    $rootScope.map.addControl(new queryControl());
   };
 
+  // Return if styles was changed
   $scope.styleChanged = function() {
     return $rootScope.selectedStyle !== $rootScope.newStyle;
   };
@@ -53,9 +58,17 @@ function MapCtrl($rootScope, $scope, services) {
       geomHasChanged = true;
     }
 
+    var queryHasChanged = false;
+    if (JSON.stringify($rootScope.query) !== JSON.stringify($rootScope.newQuery)) {
+      $rootScope.query = $rootScope.newQuery;
+      queryHasChanged = true;
+    }
+
     // Render png points
     if ($scope.zoom >= $scope.zoomToRenderPng) {
-      if ($rootScope.selectedStyle === 'cluster' || $scope.styleChanged() || geomHasChanged) {
+      if ($rootScope.selectedStyle === 'cluster' ||
+        $scope.styleChanged() || geomHasChanged || queryHasChanged) {
+
         $rootScope.group.clearLayers();
         $rootScope.selectedStyle = $rootScope.newStyle;
 
@@ -67,7 +80,9 @@ function MapCtrl($rootScope, $scope, services) {
         $rootScope.group.addLayer($rootScope.selectedLayer);
       }
     // Render cluster
-    } else if ($rootScope.selectedStyle !== 'cluster' || geomHasChanged) {
+    } else if ($rootScope.selectedStyle !== 'cluster' ||
+      geomHasChanged || queryHasChanged) {
+
       $rootScope.group.clearLayers();
       $scope.cluster = $scope.createClusterLayer();
       $rootScope.selectedLayer = $scope.cluster;
@@ -91,14 +106,14 @@ function MapCtrl($rootScope, $scope, services) {
       }
     };
 
-    var clusterUrl = services.clusterUrl($rootScope.geom);
+    var clusterUrl = services.clusterUrl($rootScope.geom, $rootScope.query);
 
     return L.tileCluster(clusterUrl, options);
   };
 
   // Create a png layer
   $scope.createPngLayer = function(style) {
-    var url = services.pngUrl(style, $rootScope.geom);
+    var url = services.pngUrl(style, $rootScope.geom, $rootScope.query);
 
     // create a collection to render png points
     return L.tileLayer(url,
@@ -108,7 +123,7 @@ function MapCtrl($rootScope, $scope, services) {
 
   // Create a UTFGrid layer
   $scope.createUtfgridLayer = function(style) {
-    var url = services.utfUrl(style, $rootScope.geom);
+    var url = services.utfUrl(style, $rootScope.geom, $rootScope.query);
 
     var options = {
       useJsonP: true,
@@ -290,5 +305,88 @@ function MapCtrl($rootScope, $scope, services) {
     } else {
       $('#resetButton').prop('class', 'leaflet-draw-edit-remove leaflet-disabled');
     }
+  };
+
+  // Add custom control to relation query
+  $scope.relationalFilterControler = function() {
+    return L.Control.extend({
+      options: {
+        position: 'topright',
+        searchExample: {
+          query: {
+            match_all: {
+
+            }
+          }
+        }
+      },
+
+      initialize: function(options) {
+        L.Util.setOptions(this, options || {});
+      },
+      onAdd: function (map) {
+        // Create a div to textarea
+        this._container = L.DomUtil.create('div', 'leaflet-control-search');
+        // Create textarea to search
+        this._textarea = this._createInput();
+        // Create a button to update map
+        this._searchButton = this._createButton();
+
+        return this._container;
+      },
+      search: function() {
+        try {
+          $rootScope.newQuery = JSON.parse(this._textarea.value);
+          $scope.addProperLayer();
+        } catch(e) {
+          console.error('Error', e);
+        }
+      },
+      _createButton: function() {
+        var div = this._createDiv('row-fluid');
+        this._button_div = L.DomUtil.create('div', 'col-md-2 col-md-offset-4', div);
+        var button = L.DomUtil.create('button', 'btn-primary small', this._button_div);
+
+        button.id = 'searchButton';
+        button.type = 'button';
+        button.style['margin-bottom'] = '8px';
+
+        $timeout(
+          function() {
+            $('#searchButton').html('Search');
+          }
+        );
+
+        L.DomEvent
+          .on(button, 'click', L.DomEvent.stop, this)
+          .on(button, 'click', this.search, this);
+
+        return button;
+      },
+      _createDiv: function(className) {
+        var div = L.DomUtil.create('div', className, this._container);
+        div.style.display = 'relative';
+        div.style.padding = '5px';
+
+        return div;
+      },
+      _createInput: function () {
+        this._search_div = this._createDiv('row-fluid');
+        var input = L.DomUtil.create('textarea', '', this._search_div);
+        input.rows = 10;
+        input.cols = 40;
+        input.autocomplete = 'off';
+        input.autocorrect = 'off';
+        input.autocapitalize = 'off';
+        input.value = JSON.stringify(this.options.searchExample, null, 2);
+        input.style.display = 'relative';
+
+        L.DomEvent
+          .disableClickPropagation(input)
+          ;
+        
+        return input;
+      }
+    });
   };
 }

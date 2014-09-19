@@ -24,7 +24,7 @@ app.factory('services',
 
         return url;
       },
-      pngUrl: function(style, geom) {
+      pngUrl: function(style, geom, query) {
         var prefix = null;
 
         if ($rootScope.config.subdomains) {
@@ -40,10 +40,9 @@ app.factory('services',
         url = url + '/map/' + database + '/' + collection;
         url = url + '/{z}/{x}/{y}/tile.png';
         url = url + '?mapkey=' + mapkey;
+
         // That is to not cut the marker.
         url = url + '&buffer=16';
-        // Avoid browser and angular caches
-        url = url + '&_=' + Math.random();
 
         // Add stylename to URL
         if (style && style !== 'default') {
@@ -55,9 +54,17 @@ app.factory('services',
           url = url + '&geom=' + JSON.stringify(geom);
         }
 
+        // Add query to URL
+        if (query) {
+          url = url + '&q=' + JSON.stringify(query);
+        }
+
+        // Avoid browser and angular caches
+        url = url + '&_=' + Math.random();
+
         return url;
       },
-      clusterUrl: function(geom) {
+      clusterUrl: function(geom, query) {
         var url = this.configureUrl();
 
         var database = $rootScope.config.database;
@@ -75,6 +82,11 @@ app.factory('services',
           url = url + '&geom=' + JSON.stringify(geom);
         }
 
+        // Add query to URL
+        if (query) {
+          url = url + '&q=' + JSON.stringify(query);
+        }
+
         return url;
       },
       styleUrl: function() {
@@ -87,19 +99,14 @@ app.factory('services',
 
         return url;
       },
-      utfUrl: function(style, geom) {
+      utfUrl: function(style, geom, query) {
         // URL is the same of tile.png service
         // just replace tile.png by tile.json
-        var url = this.pngUrl(style);
+        var url = this.pngUrl(style, geom, query);
         url = url.replace('tile.png', 'tile.json');
         url = url + '&key=name';
         url = url + '&fields[]=name';
         url = url + '&callback={cb}';
-
-        // Add spatial filter to URL
-        if (geom) {
-          url = url + '&geom=' + JSON.stringify(geom);
-        }
 
         return url;
       },

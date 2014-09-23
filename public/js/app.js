@@ -1,7 +1,7 @@
 'use strict';
 
 // Declare app level module which depends on filters, and services
-var app = angular.module('gogeo-devguide', ['gogeo-devguide.services', 'ngRoute']).
+var app = angular.module('gogeo-devguide', ['gogeo-devguide.services', 'leaflet-directive', 'ngRoute']).
   config(
     ['$routeProvider', '$locationProvider',
       function($routeProvider, $locationProvider) {

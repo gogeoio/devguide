@@ -14,7 +14,8 @@ block body
       ul.nav.navbar-nav
         li
           a(href="javascript") Map
-  div(ng-controller='MapCtrl')
+  div(ng-controller="MapCtrl")
+    leaflet(center="center", layers="layers", height="900px", width="auto")
 
   script(src='js/lib/angular/angular.js')
   script(src='js/lib/angular/angular-route.js')

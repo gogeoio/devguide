@@ -1,4 +1,5 @@
-/*
+
+/**
 This is a plugin made based on:
 - [1] Leaflet.utfgrid and
 - [2] Leaflet.markercluster plugins;
@@ -224,7 +225,6 @@ L.TileCluster = L.Class.extend({
 		map.off('zoomend', this._update, this);
 
 		this.clearClusters();
-
 		if (this.options.pointerCursor) {
 			this._container.style.cursor = '';
 		}
@@ -315,8 +315,6 @@ L.TileCluster = L.Class.extend({
     string = string.replace(')', '');
     string = string.replace(')', '');
     string = string.trim();
-
-    // console.log('string', string);
 
     var points = string.split(',');
     var lls = [];

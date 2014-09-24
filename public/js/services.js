@@ -23,7 +23,7 @@ app.factory('services',
 
         return url;
       },
-      pngUrl: function() {
+      pngUrl: function(style) {
         var prefix = null;
 
         if ($rootScope.config.subdomains && $rootScope.config.subdomains.length > 0) {
@@ -45,6 +45,11 @@ app.factory('services',
         // Prevent angular cache
         url = url + '&_=' + Math.random();
 
+        // Add style to URL
+        if (style) {
+          url = url + '&stylename=' + style;
+        }
+
         return url;
       },
       clusterUrl: function() {
@@ -62,6 +67,42 @@ app.factory('services',
         url = url + '&_=' + Math.random();
 
         return url;
+      },
+      styleUrl: function() {
+        var url = this.configureUrl();
+
+        var database = $rootScope.config.database;
+        var collection = $rootScope.config.collection;
+
+        url = url + '/styles/' + database + '/' + collection;
+
+        return url;
+      },
+      getStyles: function(callback) {
+        var url = this.styleUrl();
+
+        url = url + '?mapkey=' + $rootScope.config.mapkey;
+        url = url + '&byName=true';
+
+        // Prevent angular cache
+        url = url + '&_=' + Math.random();
+
+        $http.get(url).success(callback);
+      },
+      publishStyle: function(cartoCss, name, callback) {
+        if (_.string.isBlank(cartoCss)) {
+          callback(null);
+          return;
+        }
+
+        var params = {
+          mapkey: $rootScope.config.mapkey,
+          name: name,
+          carto_css: cartoCss
+        };
+
+        var url = this.styleUrl();
+        $http.post(url, params).success(callback);
       }
     }
   }

@@ -6,7 +6,7 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
 
   // Global variables
   $scope.overlays = {}; // Overlays
-  $scope.zoom = 10;
+  $scope.zoom = 8;
 
   // All goGeo layers
   $scope.gogeoLayers = {
@@ -59,12 +59,21 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
     };
 
     var clusterUrl = services.clusterUrl();
-
     return L.tileCluster(clusterUrl, options);
   };
 
-  $scope.handleLayers = function(zoom) {
-    $scope.zoom = zoom;
+  // Event call when style is changed
+  $rootScope.$on('event:changeStyle',
+    function(event, newStyle, oldStyle) {
+      $scope.handleLayers($scope.zoom, newStyle, oldStyle);
+    }
+  );
+
+  // Check what layer display
+  $scope.handleLayers = function(zoom, style, oldStyle) {
+    if (zoom) {
+      $scope.zoom = zoom;
+    }
 
     if ($scope.zoom >= $rootScope.config.zoomToRenderPng) {
       // Hide cluster layer
@@ -78,16 +87,40 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
         );
       }
 
-      // goGeo Points Layer
-      if ($scope.overlays.points) {
-        $scope.overlays.points.visible = true;
+      // Check if the previous layer is created and then change to not visible
+      if ($scope.overlays[oldStyle]) {
+        $scope.overlays[oldStyle].visible = false;
+      }
+
+      // Check whether to show the layer with style
+      if (style) {
+        // Hide layer of points
+        $scope.overlays.points.visible = false;
+
+        if (!$scope.overlays[style]) {
+          // Create layer with style
+          $scope.overlays[style] = {
+            name: 'goGeo Png Layer - ' + style,
+            url: services.pngUrl(style),
+            type: 'xyz',
+            visible: true
+          }
+        } else {
+          // Show layer with style
+          $scope.overlays[style].visible = true;
+        }
       } else {
-        $scope.overlays.points = {
-          name: 'goGeo Png Layer',
-          url: services.pngUrl(),
-          type: 'xyz',
-          visible: true
-        };
+        // goGeo Points Layer
+        if (!$scope.overlays.points) {
+          $scope.overlays.points = {
+            name: 'goGeo Png Layer',
+            url: services.pngUrl(),
+            type: 'xyz',
+            visible: true
+          };
+        } else {
+          $scope.overlays.points.visible = true;
+        }
       }
     } else {
       // Hide png layer
@@ -96,9 +129,7 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
       }
 
       // goGeo Cluster Layer
-      if ($scope.overlays.cluster) {
-        $scope.overlays.cluster.visible = true;
-      } else {
+      if (!$scope.overlays.cluster) {
         $scope.overlays.cluster = {
           name: 'goGeo Cluster Layer',
           type: 'custom',
@@ -108,8 +139,4 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
       }
     }
   };
-}
-
-function NavbarCtrl($scope) {
-  $scope.appVersion = '0.1.0';
 }

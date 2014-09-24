@@ -18,6 +18,13 @@ app.run(
       function(config) {
         $rootScope.config = config;
         $rootScope.$emit('event:loadLayers');
+
+        $rootScope.styles = [];
+        services.getStyles(
+          function(styles) {
+            $rootScope.styles = styles;
+          }
+        );
       }
     );
   }

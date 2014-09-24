@@ -24,7 +24,7 @@ app.factory('services',
 
         return url;
       },
-      pngUrl: function(style, geom, query) {
+      pngUrl: function(style) {
         var prefix = null;
 
         if ($rootScope.config.subdomains && $rootScope.config.subdomains.length > 0) {
@@ -40,12 +40,21 @@ app.factory('services',
         url = url + '/map/' + database + '/' + collection;
         url = url + '/{z}/{x}/{y}/tile.png';
         url = url + '?mapkey=' + mapkey;
-
         // That is to not cut the marker.
         url = url + '&buffer=16';
+        url = url + '&_=' + Math.random();
+
+        if (style && style !== 'default') {
+          url = url + '&stylename=' + style;
+        }
 
         // Prevent angular cache
         url = url + '&_=' + Math.random();
+
+        // Add style to URL
+        if (style) {
+          url = url + '&stylename=' + style;
+        }
 
         return url;
       },
@@ -59,13 +68,50 @@ app.factory('services',
         url = url + '/map/' + database + '/' + collection;
         url = url + '/{z}/{x}/{y}/cluster.json';
         url = url + '?mapkey=' + mapkey;
-        // Avoid browser and angular caches
-        url = url + '&_=' + Math.random();
 
         // Prevent angular cache
         url = url + '&_=' + Math.random();
 
         return url;
+      },
+      styleUrl: function() {
+        var url = this.configureUrl();
+
+        var database = $rootScope.config.database;
+        var collection = $rootScope.config.collection;
+
+        url = url + '/styles/' + database + '/' + collection;
+
+        // Prevent angular cache
+        url = url + '&_=' + Math.random();
+
+        return url;
+      },
+      getStyles: function(callback) {
+        var url = this.styleUrl();
+
+        url = url + '?mapkey=' + $rootScope.config.mapkey;
+        url = url + '&byName=true';
+
+        // Prevent angular cache
+        url = url + '&_=' + Math.random();
+
+        $http.get(url).success(callback);
+      },
+      publishStyle: function(cartoCss, name, callback) {
+        if (_.string.isBlank(cartoCss)) {
+          callback(null);
+          return;
+        }
+
+        var params = {
+          mapkey: $rootScope.config.mapkey,
+          name: name,
+          carto_css: cartoCss
+        };
+
+        var url = this.styleUrl();
+        $http.post(url, params).success(callback);
       }
     }
   }

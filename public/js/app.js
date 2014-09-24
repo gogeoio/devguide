@@ -1,7 +1,6 @@
 'use strict';
 
 // Declare app level module which depends on filters, and services
-
 var app = angular.module('gogeo-devguide', ['gogeo-devguide.services', 'leaflet-directive', 'ngRoute']).
   config(
     ['$routeProvider', '$locationProvider',
@@ -19,6 +18,13 @@ app.run(
       function(config) {
         $rootScope.config = config;
         $rootScope.$emit('event:loadLayers');
+
+        $rootScope.styles = [];
+        services.getStyles(
+          function(styles) {
+            $rootScope.styles = styles;
+          }
+        );
       }
     );
   }

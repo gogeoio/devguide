@@ -14,6 +14,16 @@ block body
       ul.nav.navbar-nav
         li
           a(href="javascript") Map
+        li.dropdown
+          a.dropdown-toggle(href="javascript:", data-toggle="dropdown") Styles
+            span.caret
+          ul.dropdown-menu(role="menu")
+            li(class="{{selectedStyle == null ? 'active' : ''}}")
+              a(href="javascript:", ng-click="applyStyle()") Default style
+            li(class="{{selectedStyle == 'marker' ? 'active' : ''}}")
+              a(href="javascript:", ng-click="applyStyle('marker')") Change marker
+            li(class="{{selectedStyle == 'heat_map' ? 'active' : ''}}")
+              a(href="javascript:", ng-click="applyStyle('heat_map')") Heatmap
   div(ng-controller="MapCtrl")
     leaflet(center="center", layers="gogeoLayers", height="900px", width="auto", style="margin-top: -20px;")
 
@@ -21,7 +31,8 @@ block body
   script(src='js/lib/angular/angular-route.js')
   script(src='js/app.js')
   script(src='js/services.js')
-  script(src='js/controllers.js')
+  script(src='js/map-controller.js')
+  script(src='js/navbar-controller.js')
   script(src='js/lib/jquery/jquery-2.0.3.min.js')
   script(src='js/lib/leaflet/leaflet-src-0.7.3.js')
   script(src="js/lib/leaflet-plugins/cluster/leaflet.tilecluster.js")

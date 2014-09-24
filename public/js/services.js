@@ -86,6 +86,17 @@ app.factory('services',
 
         return url;
       },
+      utfUrl: function() {
+        // URL is the same of tile.png service
+        // just replace tile.png by tile.json
+        var url = this.pngUrl();
+        url = url.replace('tile.png', 'tile.json');
+        url = url + '&key=name';
+        url = url + '&fields[]=name';
+        url = url + '&callback={cb}';
+
+        return url;
+      },
       getStyles: function(callback) {
         var url = this.styleUrl();
 

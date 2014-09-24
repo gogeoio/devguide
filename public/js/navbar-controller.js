@@ -1,7 +1,7 @@
 'use strict';
 
 function NavbarCtrl($scope, $rootScope, services) {
-  $scope.appVersion = '0.2.0';
+  $scope.appVersion = '0.3.0';
 
   $scope.selectedStyle = null;
 

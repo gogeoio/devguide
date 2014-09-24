@@ -2,11 +2,11 @@
 
 /* Controllers */
 
-function MapCtrl($scope, $rootScope, $timeout, services) {
+function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
 
   // Global variables
   $scope.overlays = {}; // Overlays
-  $scope.zoom = 8;
+  $scope.zoom = 11;
 
   // All goGeo layers
   $scope.gogeoLayers = {
@@ -30,6 +30,24 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
     controls: {},
     layers: $scope.gogeoLayers
   });
+
+  // Handle mouseover event
+  $scope.$on('leafletDirectiveMap.utfgridMouseover',
+    function(event, leafletEvent) {
+      // the UTFGrid information is on leafletEvent.data
+      leafletData.getMap().then(
+        function(map) {
+          if (leafletEvent.data) {
+            var content = '<h3>' + leafletEvent.data.name + '</h3>';
+            var popup = L.popup()
+              .setLatLng(leafletEvent.latlng)
+              .setContent(content)
+              .openOn(map);
+          }
+        }
+      );
+    }
+  );
 
   // Event call when is to load the other layers
   $rootScope.$on('event:loadLayers',
@@ -96,6 +114,7 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
       if (style) {
         // Hide layer of points
         $scope.overlays.points.visible = false;
+        $scope.overlays.utfgrid.visible = false;
 
         if (!$scope.overlays[style]) {
           // Create layer with style
@@ -118,14 +137,23 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
             type: 'xyz',
             visible: true
           };
+
+          $scope.overlays.utfgrid = {
+            name: 'goGeo UTFGrid Layer',
+            url: services.utfUrl(),
+            type: 'utfGrid',
+            visible: true
+          }
         } else {
           $scope.overlays.points.visible = true;
+          $scope.overlays.utfgrid.visible = true;
         }
       }
     } else {
       // Hide png layer
       if ($scope.overlays.points) {
         $scope.overlays.points.visible = false;
+        $scope.overlays.utfgrid.visible = false;
       }
 
       // goGeo Cluster Layer

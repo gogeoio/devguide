@@ -11,3 +11,15 @@ var app = angular.module('gogeo-devguide', ['gogeo-devguide.services', 'leaflet-
       }
     ]
   );
+
+app.run(
+  function($rootScope, services) {
+    services.config(
+      function(config) {
+        $rootScope.config = config;
+
+        $rootScope.$emit('event:loadLayers');
+      }
+    );
+  }
+);

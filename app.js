@@ -36,6 +36,7 @@ if (app.get('env') === 'production') {
 
 // Routes
 app.get('/', routes.index);
+app.get('/config', routes.config);
 
 // redirect all others to the index (HTML5 history)
 app.get('*', routes.index);

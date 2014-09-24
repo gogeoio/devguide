@@ -15,7 +15,7 @@ block body
         li
           a(href="javascript") Map
   div(ng-controller="MapCtrl")
-    leaflet(center="center", layers="layers", height="900px", width="auto")
+    leaflet(center="center", layers="gogeoLayers", height="900px", width="auto", style="margin-top: -20px;")
 
   script(src='js/lib/angular/angular.js')
   script(src='js/lib/angular/angular-route.js')
@@ -28,3 +28,5 @@ block body
   script(src='js/lib/leaflet-plugins/layer/tile/Google.js')
   script(src='bootstrap/js/bootstrap.min.js')
   script(src='js/lib/angular/angular-leaflet-directive.js')
+  script(src='js/lib/leaflet-plugins/cluster/leaflet.tilecluster.js')
+  script(src='js/lib/underscore/underscore.string.min.js')

@@ -136,6 +136,8 @@ function MapCtrl($scope, $rootScope, $timeout, services) {
           layer: $scope.createClusterLayer(),
           visible: true
         }
+      } else {
+        $scope.overlays.cluster.visible = true;
       }
     }
   };

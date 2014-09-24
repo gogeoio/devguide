@@ -27,6 +27,7 @@ app.use(app.router);
 // development only
 if (app.get('env') === 'development') {
    app.use(express.errorHandler());
+   app.locals.pretty = true;
 };
 
 // production only

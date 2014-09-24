@@ -15,10 +15,11 @@ app.factory('services',
 
         if (!prefix) {
           prefix = 'maps.';
+          prefix = '';
         }
 
         if (!_.string.startsWith(url, 'https')) {
-          url = 'https://' + prefix + url;
+          url = 'http://' + prefix + url;
         }
 
         return url;
@@ -41,6 +42,11 @@ app.factory('services',
         url = url + '?mapkey=' + mapkey;
         // That is to not cut the marker.
         url = url + '&buffer=16';
+        url = url + '&_=' + Math.random();
+
+        if (style && style !== 'default') {
+          url = url + '&stylename=' + style;
+        }
 
         // Prevent angular cache
         url = url + '&_=' + Math.random();
@@ -75,6 +81,9 @@ app.factory('services',
         var collection = $rootScope.config.collection;
 
         url = url + '/styles/' + database + '/' + collection;
+
+        // Prevent angular cache
+        url = url + '&_=' + Math.random();
 
         return url;
       },

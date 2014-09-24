@@ -1,4 +1,6 @@
-/*
+
+/**
+
 This is a plugin made based on:
 - [1] Leaflet.utfgrid and
 - [2] Leaflet.markercluster plugins;
@@ -216,17 +218,14 @@ L.TileCluster = L.Class.extend({
 	},
 
 	onRemove: function () {
-		L.stamp(this._group);
-
-		this.clearClusters();
+		var map = this._map;
 
 		this._group.off('mouseover', this._drawConvexHull, this);
 		this._group.off('mouseout', this._removeConvexHull, this);
-
-		var map = this._map;
 		map.off('moveend', this._update, this);
 		map.off('zoomend', this._update, this);
 
+		this.clearClusters();
 		if (this.options.pointerCursor) {
 			this._container.style.cursor = '';
 		}

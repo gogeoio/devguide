@@ -17,7 +17,6 @@ app.run(
     services.config(
       function(config) {
         $rootScope.config = config;
-
         $rootScope.$emit('event:loadLayers');
       }
     );

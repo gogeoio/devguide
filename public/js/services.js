@@ -2,8 +2,6 @@
 
 /* Services */
 
-// Demonstrate how to register services
-// In this case it is a simple value service.
 var app = angular.module('gogeo-devguide.services', []);
 
 app.factory('services',
@@ -28,7 +26,7 @@ app.factory('services',
       pngUrl: function() {
         var prefix = null;
 
-        if ($rootScope.config && $rootScope.config.subdomains) {
+        if ($rootScope.config.subdomains && $rootScope.config.subdomains.length > 0) {
           prefix = '{s}.';
         }
 
@@ -43,6 +41,7 @@ app.factory('services',
         url = url + '?mapkey=' + mapkey;
         // That is to not cut the marker.
         url = url + '&buffer=16';
+
         // Prevent angular cache
         url = url + '&_=' + Math.random();
 

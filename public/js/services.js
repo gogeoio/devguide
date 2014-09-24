@@ -15,11 +15,10 @@ app.factory('services',
 
         if (!prefix) {
           prefix = 'maps.';
-          prefix = '';
         }
 
         if (!_.string.startsWith(url, 'https')) {
-          url = 'http://' + prefix + url;
+          url = 'https://' + prefix + url;
         }
 
         return url;

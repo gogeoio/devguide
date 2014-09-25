@@ -23,7 +23,7 @@ app.factory('services',
 
         return url;
       },
-      pngUrl: function(style) {
+      pngUrl: function(style, geom) {
         var prefix = null;
 
         if ($rootScope.config.subdomains && $rootScope.config.subdomains.length > 0) {
@@ -39,25 +39,26 @@ app.factory('services',
         url = url + '/map/' + database + '/' + collection;
         url = url + '/{z}/{x}/{y}/tile.png';
         url = url + '?mapkey=' + mapkey;
+
         // That is to not cut the marker.
-        url = url + '&buffer=16';
-        url = url + '&_=' + Math.random();
-
-        if (style && style !== 'default') {
-          url = url + '&stylename=' + style;
-        }
-
-        // Prevent angular cache
-        url = url + '&_=' + Math.random();
+        url = url + '&buffer=8';
 
         // Add style to URL
         if (style) {
           url = url + '&stylename=' + style;
         }
 
+        // Prevent angular cache
+        url = url + '&_=' + Math.random();
+
+        // Add geom to URL
+        if (geom) {
+          url = url + '&geom=' + geom;
+        }
+
         return url;
       },
-      clusterUrl: function() {
+      clusterUrl: function(geom) {
         var url = this.configureUrl();
 
         var database = $rootScope.config.database;
@@ -71,6 +72,11 @@ app.factory('services',
         // Prevent angular cache
         url = url + '&_=' + Math.random();
 
+        // Add geom to URL
+        if (geom) {
+          url = url + '&geom=' + geom;
+        }
+
         return url;
       },
       styleUrl: function() {
@@ -81,15 +87,12 @@ app.factory('services',
 
         url = url + '/styles/' + database + '/' + collection;
 
-        // Prevent angular cache
-        url = url + '&_=' + Math.random();
-
         return url;
       },
-      utfUrl: function() {
+      utfUrl: function(style, geom) {
         // URL is the same of tile.png service
         // just replace tile.png by tile.json
-        var url = this.pngUrl();
+        var url = this.pngUrl(style, geom);
         url = url.replace('tile.png', 'tile.json');
         url = url + '&key=name';
         url = url + '&fields[]=name';

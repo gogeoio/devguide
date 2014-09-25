@@ -1,7 +1,19 @@
 'use strict';
 
 function NavbarCtrl($scope, $rootScope, services) {
-  $scope.appVersion = '0.3.0';
+  $scope.appVersion = '0.4.0';
+
+  $rootScope.$on('event:zoomChanged',
+    function(event, zoom) {
+      $scope.zoom = zoom;
+    }
+  );
+
+  $rootScope.$on('event:typeChanged',
+    function(event, type) {
+      $scope.type = type;
+    }
+  );
 
   $scope.selectedStyle = null;
 

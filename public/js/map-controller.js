@@ -5,8 +5,8 @@
 function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
 
   // Global variables
-  $scope.overlays = {}; // Overlays
   $scope.zoom = 11;
+  $scope.drawnItems = new L.FeatureGroup();
 
   // All goGeo layers
   $scope.gogeoLayers = {
@@ -17,7 +17,70 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
         type: 'google'
       }
     },
-    overlays: $scope.overlays
+    defaults: {
+      maxZoom: 18
+    },
+    overlays: {}
+  };
+
+  /* ----------------------------------------------------------------------- */
+  /*                                                                         */
+  /*                              Draw control                               */
+  /*                                                                         */
+  /* ----------------------------------------------------------------------- */
+
+  var options = {
+    draw: {
+      polyline: false, // Turns off this drawing tool
+      polygon: false, // Turns off this drawing tool
+      circle: false, // Turns off this drawing tool
+      rectangle: {
+        shapeOptions: {
+          clickable: true
+        }
+      },
+      marker: false
+    },
+    edit: {
+      featureGroup: $scope.drawnItems
+    },
+    thrash: true
+  };
+
+  var drawControl = new L.Control.Draw(options);
+
+  leafletData.getMap().then(
+    function(map) {
+      map.addLayer($scope.drawnItems);
+
+      // Update geom and reload layers
+      map.on('draw:created', $scope.drawHandler);
+      map.on('draw:edited', $scope.drawHandler);
+      map.on('draw:deleted',
+        function() {
+          $scope.newGeom = null;
+          $scope.drawnItems.clearLayers();
+          $scope.handleLayers($scope.zoom);
+        }
+      );
+    }
+  );
+
+  $scope.drawHandler = function(event) {
+
+    var layer = event.layer;
+
+    if (layer) {
+      $scope.drawnItems.clearLayers();
+      $scope.drawnItems.addLayer(layer);
+    } else {
+      layer = $scope.drawnItems.getLayers()[0];
+    }
+
+    var geojson = layer.toGeoJSON();
+
+    $scope.newGeom = JSON.stringify(geojson.geometry);
+    $scope.handleLayers($scope.zoom);
   };
 
   // Add baselayer
@@ -27,8 +90,10 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
       lng: -92,
       zoom: $scope.zoom
     },
-    controls: {},
-    layers: $scope.gogeoLayers
+    layers: $scope.gogeoLayers,
+    controls: {
+      custom: [ drawControl ]
+    }
   });
 
   // Handle mouseover event
@@ -39,11 +104,21 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
         function(map) {
           if (leafletEvent.data) {
             var content = '<h3>' + leafletEvent.data.name + '</h3>';
-            var popup = L.popup()
+            $scope.popup = L.popup()
               .setLatLng(leafletEvent.latlng)
               .setContent(content)
               .openOn(map);
           }
+        }
+      );
+    }
+  );
+
+  $scope.$on('leafletDirectiveMap.utfgridMouseout',
+    function(event, leafletEvent) {
+      leafletData.getMap().then(
+        function(map) {
+          map.closePopup();
         }
       );
     }
@@ -56,13 +131,15 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
       $scope.$watch('center.zoom',
         function(zoom) {
           $scope.handleLayers(zoom);
+          // Send the new zoom to NavbarCtrl
+          $rootScope.$emit('event:zoomChanged', zoom);
         }
       );
     }
   );
 
   // Create a cluster layer
-  $scope.createClusterLayer = function() {
+  $scope.createClusterLayer = function(geom) {
     var options = {
       maxZoom: 18,
       subdomains: $rootScope.config.subdomains,
@@ -76,97 +153,149 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
       }
     };
 
-    var clusterUrl = services.clusterUrl();
+    var clusterUrl = services.clusterUrl(geom);
     return L.tileCluster(clusterUrl, options);
   };
 
   // Event call when style is changed
   $rootScope.$on('event:changeStyle',
     function(event, newStyle, oldStyle) {
-      $scope.handleLayers($scope.zoom, newStyle, oldStyle);
+      $scope.newStyle = newStyle;
+      $scope.handleLayers($scope.zoom);
     }
   );
 
   // Check what layer display
-  $scope.handleLayers = function(zoom, style, oldStyle) {
+  $scope.handleLayers = function(zoom) {
     if (zoom) {
       $scope.zoom = zoom;
     }
 
+    var overlays = $scope.gogeoLayers.overlays;
+
     if ($scope.zoom >= $rootScope.config.zoomToRenderPng) {
+
       // Hide cluster layer
-      if ($scope.overlays.cluster) {
+      if (overlays.cluster) {
         // Timeout to prevent the cluster layer is not removed
         $timeout(
           function() {
-            $scope.overlays.cluster.visible = false;
+            delete overlays.cluster;
           },
-          250
+          500
         );
       }
 
-      // Check if the previous layer is created and then change to not visible
-      if ($scope.overlays[oldStyle]) {
-        $scope.overlays[oldStyle].visible = false;
+      $scope.createPointsLayer();
+    } else {
+      $scope.removePngAndUtfLayers();
+
+      // goGeo Cluster Layer
+      if (!overlays.cluster) {
+        overlays.cluster = {
+          name: 'goGeo Cluster Layer',
+          type: 'custom',
+          layer: $scope.createClusterLayer($scope.geom),
+          visible: true
+        }
+
+        $rootScope.$emit('event:typeChanged', 'cluster');
+      } else if ($scope.geom !== $scope.newGeom) {
+        $scope.removeClusterLayer();
+        $scope.geom = $scope.newGeom;
+
+        $rootScope.$emit('event:typeChanged', 'cluster + geom');
+
+        $timeout(
+          function() {
+            overlays.cluster = {
+              name: 'goGeo Cluster Layer - With Geom',
+              type: 'custom',
+              layer: $scope.createClusterLayer($scope.geom),
+              visible: true
+            }
+          },
+          100
+        );
+      }
+    }
+  };
+
+  $scope.removeClusterLayer = function() {
+    var overlays = $scope.gogeoLayers.overlays;
+
+    if (overlays.cluster) {
+      delete overlays.cluster;
+    }
+  };
+
+  $scope.removePngAndUtfLayers = function() {
+    var overlays = $scope.gogeoLayers.overlays;
+
+    // Remove png and utfgrid layers
+    if (overlays.utfgrid) {
+      delete overlays.utfgrid;
+    }
+    if (overlays.points) {
+      delete overlays.points;
+    }
+  };
+
+  $scope.createPointsLayer = function() {
+    var overlays = $scope.gogeoLayers.overlays;
+
+    if (!overlays.points || $scope.newStyle !== $scope.style || $scope.newGeom !== $scope.geom) {
+
+      $scope.removePngAndUtfLayers();
+
+      var pngName = 'goGeo Png Layer';
+      var utfName = 'goGeo UTFGrid Layer';
+      var timeout = 0;
+
+      $rootScope.$emit('event:typeChanged', 'png + utfgrid');
+
+      if ($scope.style !== $scope.newStyle) {
+        pngName = pngName + ' - ' + $scope.style;
+        utfName = utfName + ' - ' + $scope.style;
+        timeout = 10;
       }
 
-      // Check whether to show the layer with style
-      if (style) {
-        // Hide layer of points
-        $scope.overlays.points.visible = false;
-        $scope.overlays.utfgrid.visible = false;
+      if ($scope.geom !== $scope.newGeom) {
+        pngName = pngName + ' - With Geom';
+        utfName = utfName + ' - With Geom';
+        timeout = 10;
+      }
 
-        if (!$scope.overlays[style]) {
-          // Create layer with style
-          $scope.overlays[style] = {
-            name: 'goGeo Png Layer - ' + style,
-            url: services.pngUrl(style),
-            type: 'xyz',
-            visible: true
-          }
-        } else {
-          // Show layer with style
-          $scope.overlays[style].visible = true;
-        }
-      } else {
-        // goGeo Points Layer
-        if (!$scope.overlays.points) {
-          $scope.overlays.points = {
-            name: 'goGeo Png Layer',
-            url: services.pngUrl(),
+      $scope.style = $scope.newStyle;
+      $scope.geom = $scope.newGeom;
+
+      if ($scope.style && !$scope.geom) {
+        $rootScope.$emit('event:typeChanged', 'png + utfgrid + ' + $scope.style);
+      } else if (!$scope.style && $scope.geom) {
+        $rootScope.$emit('event:typeChanged', 'png + utfgrid + geom');
+      } else if ($scope.style && $scope.geom) {
+        $rootScope.$emit('event:typeChanged', 'png + utfgrid + ' + $scope.style + ' + geom');
+      }
+
+      // Timeout until the last layer can be removed by leaflet
+      $timeout(
+        function() {
+          overlays.points = {
+            name: pngName,
+            url: services.pngUrl($scope.style, $scope.geom),
             type: 'xyz',
             visible: true
           };
 
-          $scope.overlays.utfgrid = {
-            name: 'goGeo UTFGrid Layer',
-            url: services.utfUrl(),
-            type: 'utfGrid',
-            visible: true
-          }
-        } else {
-          $scope.overlays.points.visible = true;
-          $scope.overlays.utfgrid.visible = true;
-        }
-      }
-    } else {
-      // Hide png layer
-      if ($scope.overlays.points) {
-        $scope.overlays.points.visible = false;
-        $scope.overlays.utfgrid.visible = false;
-      }
-
-      // goGeo Cluster Layer
-      if (!$scope.overlays.cluster) {
-        $scope.overlays.cluster = {
-          name: 'goGeo Cluster Layer',
-          type: 'custom',
-          layer: $scope.createClusterLayer(),
-          visible: true
-        }
-      } else {
-        $scope.overlays.cluster.visible = true;
-      }
+          // overlays.utfgrid = {
+          //   name: utfName,
+          //   url: services.utfUrl($scope.style, $scope.geom),
+          //   type: 'utfGrid',
+          //   visible: true
+          // }
+        },
+        timeout
+      );
     }
-  };
+  }
 }

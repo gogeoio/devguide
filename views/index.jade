@@ -24,8 +24,15 @@ block body
               a(href="javascript:", ng-click="applyStyle('marker')") Change marker
             li(class="{{selectedStyle == 'heat_map' ? 'active' : ''}}")
               a(href="javascript:", ng-click="applyStyle('heat_map')") Heatmap
+      ul.nav.navbar-nav.pull-right
+        li
+          ul.nav.navbar-nav
+            li(style="margin-right: 5px;")
+              span.label.label-info Zoom: {{ zoom || '' }}
+            li(style="margin-right: 5px;")
+              span.label.label-info Type: {{ type || '' }}
   div(ng-controller="MapCtrl")
-    leaflet(center="center", layers="gogeoLayers", height="900px", width="auto", style="margin-top: -20px;")
+    leaflet(center="center", layers="gogeoLayers", defaults="defaults", controls="controls", height="900px", width="auto", style="margin-top: -20px;")
 
   script(src='js/lib/angular/angular.js')
   script(src='js/lib/angular/angular-route.js')
@@ -43,3 +50,4 @@ block body
   script(src='js/lib/leaflet-plugins/cluster/leaflet.tilecluster.js')
   script(src='js/lib/leaflet-plugins/utfgrid/leaflet.utfgrid.js')
   script(src='js/lib/underscore/underscore.string.min.js')
+  script(src="js/lib/leaflet-plugins/draw/leaflet.draw.js")

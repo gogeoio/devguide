@@ -228,6 +228,8 @@ L.TileCluster = L.Class.extend({
 		if (this.options.pointerCursor) {
 			this._container.style.cursor = '';
 		}
+
+		this._map.removeLayer(this._group);
 	},
 
 	_removeConvexHull: function() {

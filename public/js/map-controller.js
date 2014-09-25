@@ -174,18 +174,7 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
     var overlays = $scope.gogeoLayers.overlays;
 
     if ($scope.zoom >= $rootScope.config.zoomToRenderPng) {
-
-      // Hide cluster layer
-      if (overlays.cluster) {
-        // Timeout to prevent the cluster layer is not removed
-        $timeout(
-          function() {
-            delete overlays.cluster;
-          },
-          500
-        );
-      }
-
+      $scope.removeClusterLayer();
       $scope.createPointsLayer();
     } else {
       $scope.removePngAndUtfLayers();
@@ -197,7 +186,7 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
           type: 'custom',
           layer: $scope.createClusterLayer($scope.geom),
           visible: true
-        }
+        };
 
         $rootScope.$emit('event:typeChanged', 'cluster');
       } else if ($scope.geom !== $scope.newGeom) {
@@ -205,18 +194,12 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
         $scope.geom = $scope.newGeom;
 
         $rootScope.$emit('event:typeChanged', 'cluster + geom');
-
-        $timeout(
-          function() {
-            overlays.cluster = {
-              name: 'goGeo Cluster Layer - With Geom',
-              type: 'custom',
-              layer: $scope.createClusterLayer($scope.geom),
-              visible: true
-            }
-          },
-          100
-        );
+        overlays.cluster = {
+          name: 'goGeo Cluster Layer - With Geom',
+          type: 'custom',
+          layer: $scope.createClusterLayer($scope.geom),
+          visible: true
+        };
       }
     }
   };
@@ -245,7 +228,6 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
     var overlays = $scope.gogeoLayers.overlays;
 
     if (!overlays.points || $scope.newStyle !== $scope.style || $scope.newGeom !== $scope.geom) {
-
       $scope.removePngAndUtfLayers();
 
       var pngName = 'goGeo Png Layer';
@@ -255,8 +237,8 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
       $rootScope.$emit('event:typeChanged', 'png + utfgrid');
 
       if ($scope.style !== $scope.newStyle) {
-        pngName = pngName + ' - ' + $scope.style;
-        utfName = utfName + ' - ' + $scope.style;
+        pngName = pngName + ' - ' + $scope.newStyle;
+        utfName = utfName + ' - ' + $scope.newStyle;
         timeout = 10;
       }
 
@@ -277,7 +259,6 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
         $rootScope.$emit('event:typeChanged', 'png + utfgrid + ' + $scope.style + ' + geom');
       }
 
-      // Timeout until the last layer can be removed by leaflet
       $timeout(
         function() {
           overlays.points = {
@@ -287,14 +268,13 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
             visible: true
           };
 
-          // overlays.utfgrid = {
-          //   name: utfName,
-          //   url: services.utfUrl($scope.style, $scope.geom),
-          //   type: 'utfGrid',
-          //   visible: true
-          // }
-        },
-        timeout
+          overlays.utfgrid = {
+            name: utfName,
+            url: services.utfUrl($scope.style, $scope.geom),
+            type: 'utfGrid',
+            visible: true
+          };
+        }
       );
     }
   }

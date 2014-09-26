@@ -96,6 +96,31 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
     }
   });
 
+  // Create a cluster layer
+  $scope.createClusterLayer = function(geom, query) {
+    var options = {
+      maxZoom: 18,
+      subdomains: $rootScope.config.subdomains,
+      useJsonP: false,
+      calculateClusterQtd: function(zoom) {
+        if (zoom >= 5) {
+          return 2;
+        } else {
+          return 1;
+        }
+      }
+    };
+
+    var clusterUrl = services.clusterUrl(geom, query);
+    return L.tileCluster(clusterUrl, options);
+  };
+
+  /* ----------------------------------------------------------------------- */
+  /*                                                                         */
+  /*                                 Events                                  */
+  /*                                                                         */
+  /* ----------------------------------------------------------------------- */
+
   // Handle mouseover event
   $scope.$on('leafletDirectiveMap.utfgridMouseover',
     function(event, leafletEvent) {
@@ -138,29 +163,18 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
     }
   );
 
-  // Create a cluster layer
-  $scope.createClusterLayer = function(geom) {
-    var options = {
-      maxZoom: 18,
-      subdomains: $rootScope.config.subdomains,
-      useJsonP: false,
-      calculateClusterQtd: function(zoom) {
-        if (zoom >= 5) {
-          return 2;
-        } else {
-          return 1;
-        }
-      }
-    };
-
-    var clusterUrl = services.clusterUrl(geom);
-    return L.tileCluster(clusterUrl, options);
-  };
-
   // Event call when style is changed
   $rootScope.$on('event:changeStyle',
     function(event, newStyle, oldStyle) {
       $scope.newStyle = newStyle;
+      $scope.handleLayers($scope.zoom);
+    }
+  );
+
+  // Event call when query is changed
+  $rootScope.$on('event:queryChanged',
+    function(event, query) {
+      $scope.newQuery = query;
       $scope.handleLayers($scope.zoom);
     }
   );
@@ -184,22 +198,39 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
         overlays.cluster = {
           name: 'goGeo Cluster Layer',
           type: 'custom',
-          layer: $scope.createClusterLayer($scope.geom),
+          layer: $scope.createClusterLayer($scope.geom, $scope.query),
           visible: true
         };
 
         $rootScope.$emit('event:typeChanged', 'cluster');
-      } else if ($scope.geom !== $scope.newGeom) {
+      } else if ($scope.geom !== $scope.newGeom || $scope.query !== $scope.newQuery) {
         $scope.removeClusterLayer();
         $scope.geom = $scope.newGeom;
+        $scope.query = $scope.newQuery;
 
-        $rootScope.$emit('event:typeChanged', 'cluster + geom');
-        overlays.cluster = {
-          name: 'goGeo Cluster Layer - With Geom',
-          type: 'custom',
-          layer: $scope.createClusterLayer($scope.geom),
-          visible: true
-        };
+        var types = ['cluster'];
+
+        if ($scope.query) {
+          types.push('query');
+        }
+
+        if ($scope.geom) {
+          types.push('geom');
+        }
+
+        $rootScope.$emit('event:typeChanged', types.join(' + '));
+
+        $timeout(
+          function() {
+            overlays.cluster = {
+              name: 'goGeo Cluster Layer - ' + types.join(' + '),
+              type: 'custom',
+              layer: $scope.createClusterLayer($scope.geom, $scope.query),
+              visible: true
+            };
+          },
+          100
+        );
       }
     }
   };
@@ -227,7 +258,11 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
   $scope.createPointsLayer = function() {
     var overlays = $scope.gogeoLayers.overlays;
 
-    if (!overlays.points || $scope.newStyle !== $scope.style || $scope.newGeom !== $scope.geom) {
+    if (!overlays.points
+      || $scope.newStyle !== $scope.style
+      || $scope.newGeom !== $scope.geom
+      || $scope.newQuery !== $scope.query) {
+
       $scope.removePngAndUtfLayers();
 
       var pngName = 'goGeo Png Layer';
@@ -236,41 +271,44 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
 
       $rootScope.$emit('event:typeChanged', 'png + utfgrid');
 
-      if ($scope.style !== $scope.newStyle) {
-        pngName = pngName + ' - ' + $scope.newStyle;
-        utfName = utfName + ' - ' + $scope.newStyle;
-        timeout = 10;
-      }
-
-      if ($scope.geom !== $scope.newGeom) {
-        pngName = pngName + ' - With Geom';
-        utfName = utfName + ' - With Geom';
-        timeout = 10;
-      }
-
       $scope.style = $scope.newStyle;
       $scope.geom = $scope.newGeom;
+      $scope.query = $scope.newQuery;
 
-      if ($scope.style && !$scope.geom) {
-        $rootScope.$emit('event:typeChanged', 'png + utfgrid + ' + $scope.style);
-      } else if (!$scope.style && $scope.geom) {
-        $rootScope.$emit('event:typeChanged', 'png + utfgrid + geom');
-      } else if ($scope.style && $scope.geom) {
-        $rootScope.$emit('event:typeChanged', 'png + utfgrid + ' + $scope.style + ' + geom');
+      var types = ['png', 'utfgrid'];
+
+      if ($scope.style) {
+        types.push($scope.style);
+        timeout = 10;
+      }
+
+      if ($scope.geom) {
+        types.push('geom');
+        timeout = 10;
+      }
+
+      if ($scope.query) {
+        types.push('query');
+      }
+
+      if (types.length > 2) {
+        $rootScope.$emit('event:typeChanged', types.join(' + '));
+        pngName = pngName + ' - ' + types.join(' + ');
+        utfName = utfName + ' - ' + types.join(' + ');
       }
 
       $timeout(
         function() {
           overlays.points = {
             name: pngName,
-            url: services.pngUrl($scope.style, $scope.geom),
+            url: services.pngUrl($scope.style, $scope.geom, $scope.query),
             type: 'xyz',
             visible: true
           };
 
           overlays.utfgrid = {
             name: utfName,
-            url: services.utfUrl($scope.style, $scope.geom),
+            url: services.utfUrl($scope.style, $scope.geom, $scope.query),
             type: 'utfGrid',
             visible: true
           };

@@ -33,6 +33,11 @@ block body
               span.label.label-info Type: {{ type || '' }}
   div(ng-controller="MapCtrl")
     leaflet(center="center", layers="gogeoLayers", defaults="defaults", controls="controls", height="900px", width="auto", style="margin-top: -20px;")
+  div(ng-controller="QueryCtrl")
+    .leaflet-control-search(id="search-div")
+      a#search-icon(href="#", title="Search").leaflet-control-search-toggle
+        span(style="font-size: 24px;").glyphicon.glyphicon-search
+        
 
   script(src='js/lib/angular/angular.js')
   script(src='js/lib/angular/angular-route.js')
@@ -40,6 +45,7 @@ block body
   script(src='js/services.js')
   script(src='js/map-controller.js')
   script(src='js/navbar-controller.js')
+  script(src='js/query-controller.js')
   script(src='js/lib/jquery/jquery-2.0.3.min.js')
   script(src='js/lib/leaflet/leaflet-src-0.7.3.js')
   script(src="js/lib/leaflet-plugins/cluster/leaflet.tilecluster.js")

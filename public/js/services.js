@@ -23,7 +23,7 @@ app.factory('services',
 
         return url;
       },
-      pngUrl: function(style, geom) {
+      pngUrl: function(style, geom, query) {
         var prefix = null;
 
         if ($rootScope.config.subdomains && $rootScope.config.subdomains.length > 0) {
@@ -56,9 +56,13 @@ app.factory('services',
           url = url + '&geom=' + geom;
         }
 
+        if (query) {
+          url = url + '&q=' + query;
+        }
+
         return url;
       },
-      clusterUrl: function(geom) {
+      clusterUrl: function(geom, query) {
         var url = this.configureUrl();
 
         var database = $rootScope.config.database;
@@ -77,6 +81,10 @@ app.factory('services',
           url = url + '&geom=' + geom;
         }
 
+        if (query) {
+          url = url + '&q=' + query;
+        }
+
         return url;
       },
       styleUrl: function() {
@@ -89,10 +97,10 @@ app.factory('services',
 
         return url;
       },
-      utfUrl: function(style, geom) {
+      utfUrl: function(style, geom, query) {
         // URL is the same of tile.png service
         // just replace tile.png by tile.json
-        var url = this.pngUrl(style, geom);
+        var url = this.pngUrl(style, geom, query);
         url = url.replace('tile.png', 'tile.json');
         url = url + '&key=name';
         url = url + '&fields[]=name';

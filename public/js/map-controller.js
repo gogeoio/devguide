@@ -193,32 +193,30 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
     } else {
       $scope.removePngAndUtfLayers();
 
+      var types = ['cluster'];
+
+      if ($scope.newGeom || $scope.geom) {
+        types.push('geom');
+      }
+
+      if ($scope.newQuery || $scope.query) {
+        types.push('query');
+      }
+
+      $rootScope.$emit('event:typeChanged', types.join(' + '));
+
       // goGeo Cluster Layer
       if (!overlays.cluster) {
         overlays.cluster = {
-          name: 'goGeo Cluster Layer',
+          name: 'goGeo Cluster Layer - ' + types.join(' + '),
           type: 'custom',
           layer: $scope.createClusterLayer($scope.geom, $scope.query),
           visible: true
         };
-
-        $rootScope.$emit('event:typeChanged', 'cluster');
       } else if ($scope.geom !== $scope.newGeom || $scope.query !== $scope.newQuery) {
         $scope.removeClusterLayer();
         $scope.geom = $scope.newGeom;
         $scope.query = $scope.newQuery;
-
-        var types = ['cluster'];
-
-        if ($scope.query) {
-          types.push('query');
-        }
-
-        if ($scope.geom) {
-          types.push('geom');
-        }
-
-        $rootScope.$emit('event:typeChanged', types.join(' + '));
 
         $timeout(
           function() {
@@ -244,15 +242,19 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
   };
 
   $scope.removePngAndUtfLayers = function() {
-    var overlays = $scope.gogeoLayers.overlays;
+    $timeout(
+      function() {
+        var overlays = $scope.gogeoLayers.overlays;
 
-    // Remove png and utfgrid layers
-    if (overlays.utfgrid) {
-      delete overlays.utfgrid;
-    }
-    if (overlays.points) {
-      delete overlays.points;
-    }
+        // Remove png and utfgrid layers
+        if (overlays.utfgrid) {
+          delete overlays.utfgrid;
+        }
+        if (overlays.points) {
+          delete overlays.points;
+        }
+      }
+    );
   };
 
   $scope.createPointsLayer = function() {
@@ -279,16 +281,17 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
 
       if ($scope.style) {
         types.push($scope.style);
-        timeout = 10;
+        timeout += 10;
       }
 
       if ($scope.geom) {
         types.push('geom');
-        timeout = 10;
+        timeout += 10;
       }
 
       if ($scope.query) {
         types.push('query');
+        timeout += 10;
       }
 
       if (types.length > 2) {

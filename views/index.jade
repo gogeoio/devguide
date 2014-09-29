@@ -13,7 +13,7 @@ block body
     .collapse.navbar-collapse.navbar-ex1-collapse
       ul.nav.navbar-nav
         li
-          a(href="javascript") Map
+          a(href="javascript:") Map
         li.dropdown
           a.dropdown-toggle(href="javascript:", data-toggle="dropdown") Styles
             span.caret
@@ -25,19 +25,21 @@ block body
             li(class="{{selectedStyle == 'heat_map' ? 'active' : ''}}")
               a(href="javascript:", ng-click="applyStyle('heat_map')") Heatmap
         li.dropdown
-            a.dropdown-toggle(href="javascript:", data-toggle="dropdown") Thematic Maps
-              span.caret
-            ul.dropdown-menu(role="menu")
-              li(class="{{ selectedThematic == null ? 'active' : '' }}")
-                a(href="#", ng-click="createThematicMap('blank')") Without thematic
-              li(class="{{ selectedThematic == 'population' ? 'active' : '' }}")
-                a(href="#", ng-click="createThematicMap('population')") Population
-              li(class="{{ selectedThematic == 'age_male' ? 'active' : '' }}")
-                a(href="#", ng-click="createThematicMap('age_male')") Age male
-              li(class="{{ selectedThematic == 'age_female' ? 'active' : '' }}")
-                a(href="#", ng-click="createThematicMap('age_female')") Age female
-              li(class="{{ selectedThematic == 'age_total' ? 'active' : '' }}")
-                a(href="#", ng-click="createThematicMap('age_total')") Age total
+          a.dropdown-toggle(href="javascript:", data-toggle="dropdown") Thematic Maps
+            span.caret
+          ul.dropdown-menu(role="menu")
+            li(class="{{ selectedThematic == null ? 'active' : '' }}")
+              a(href="#", ng-click="createThematicMap('blank')") Without thematic
+            li(class="{{ selectedThematic == 'population' ? 'active' : '' }}")
+              a(href="#", ng-click="createThematicMap('population')") Population
+            li(class="{{ selectedThematic == 'age_male' ? 'active' : '' }}")
+              a(href="#", ng-click="createThematicMap('age_male')") Age male
+            li(class="{{ selectedThematic == 'age_female' ? 'active' : '' }}")
+              a(href="#", ng-click="createThematicMap('age_female')") Age female
+            li(class="{{ selectedThematic == 'age_total' ? 'active' : '' }}")
+              a(href="#", ng-click="createThematicMap('age_total')") Age total
+        li(class="{{ geoAgg ? 'active' : '' }}")
+          a(href="javascript:", ng-click="toggleGeoAgg()") GeoAggregation
       ul.nav.navbar-nav.pull-right
         li
           ul.nav.navbar-nav
@@ -61,7 +63,40 @@ block body
             span#legend-title Thematic map - {{ type }}
         .legend-scale
           ul#legend-labels.legend-labels
+  .div(ng-controller="GeoServicesCtrl")
+    #geoagg-result-div.well(ng-show="showGeoAgg")
+      #geoagg-result(ng-show="geoAggList && geoAggList.length > 0")
+        .geoagg-result-subtitle
+          .row
+            .col-md-3.col-md-offset-3
+              h4 GeoAggregation
 
+        .geoagg-result-title
+          .row
+            .col-md-3.col-md-offset-3
+            .col-md-3.col-md-offset-1
+              a(href="http://gogeo.io", target="_blank")
+                img(src="http://gogeo.io/static/img/gogeo-brand.png", height="200%", width="200%")
+        div
+          .row
+            .col-lg-5
+              b Total Count
+            .col-lg-5
+              h5#geoagg-result-qtd.pull-right {{ totalCount || 0 }}
+
+        .geoagg-result-div
+          .col-lg-12
+            table#geoagg-result-list
+              tbody
+                tr(ng-repeat="item in geoAggList")
+                  td.geoagg-td
+                    .progress
+                      .progress-bar(role="progressbar", aria-valuenow="{{ item.percent }}", aria-valuemin="0", aria-valuemax="100", style="width: {{ item.percent }}%;")
+                        .col-md-6.label-name {{ item.key }}
+                        .col-md-6.label-value {{ item.doc_count | formatNumber }} ( {{ item.percent }} % )
+      #geoagg-result(ng-hide="geoAggList && geoAggList.length > 0")
+        .well
+          h3 Draw a spatial restriction first
   script(src='js/lib/angular/angular.js')
   script(src='js/lib/angular/angular-route.js')
   script(src='js/app.js')
@@ -70,6 +105,7 @@ block body
   script(src='js/navbar-controller.js')
   script(src='js/query-controller.js')
   script(src='js/thematic-controller.js')
+  script(src='js/geoservices-controller.js')
   script(src='js/lib/jquery/jquery-2.0.3.min.js')
   script(src='js/lib/jquery/jquery.number.min.js')
   script(src='js/lib/leaflet/leaflet-src-0.7.3.js')

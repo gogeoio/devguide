@@ -4,6 +4,12 @@ body {
   padding-top:70px;
 }
 
+/* ------------------------------------------------------------------------- */
+/*                                                                           */
+/*                             Legend CSS Style                              */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+
 #legend-div {
   background-color: white;
   opacity: 0.9;
@@ -11,7 +17,6 @@ body {
   z-index: 1000;
   right: 0;
   bottom: 0;
-  /*width: 200px;*/
   height: 130px;
 }
 
@@ -43,4 +48,105 @@ body {
   margin-right: 5px;
   margin-left: 0;
   border: 1px solid #999;
+}
+
+/* ------------------------------------------------------------------------- */
+/*                                                                           */
+/*                             GeoAgg CSS Style                              */
+/*                                                                           */
+/* ------------------------------------------------------------------------- */
+
+#geoagg-result-div {
+  width: 335px;
+  height: 560px;
+  position: absolute;
+  z-index: 1001;
+  right: 3px;
+  top: 3px;
+  margin-top: 50px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 10px;
+  opacity: 0.8;
+  height: 92%
+}
+
+#geoagg-result-div #geoagg-result .geoagg-result-title {
+  margin: -5px 0px 5px 20px;
+}
+
+#geoagg-result-div #geoagg-result .geoagg-result-subtitle {
+  margin: -15px 0px 0px 0px;
+}
+
+#geoagg-result-div #geoagg-result .geoagg-result-by {
+  margin: -10px 0px 0px 120px;
+}
+
+#geoagg-result-div tr {
+  border: solid;
+  border-width: 1px 0;
+  border-style: dashed;
+  border-color: #b6b5b5;
+}
+
+#geoagg-result-div td {
+  padding: 8px;
+}
+
+#geoagg-result-div tr {
+  border: none;
+}
+
+#reset-search {
+  position: absolute;
+  z-index: 1001;
+  top: 83px;
+  left: 5px;
+  height: 30px;
+
+  -webkit-box-shadow: -1px 0px 2px 0px rgba(30, 30, 30, 0.9);
+  -moz-box-shadow:    -1px 0px 2px 0px rgba(30, 30, 30, 0.9);
+  box-shadow:         -1px 0px 2px 0px rgba(30, 30, 30, 0.9);
+}
+
+#close-geoagg-result {
+  margin-top: -31px;
+  margin-right: 51px;
+}
+
+#geoagg-result-list {
+  width: 290px;
+  margin-left: -20px;
+}
+
+#geoagg-result-list tr td .result {
+  width: 95%;
+  height: 22px;
+}
+
+#geoagg-result-qtd {
+  margin-top: 5px;
+  margin-right: -20px;
+}
+
+.geoagg-td {
+  padding: 0px !important;
+}
+
+.progress {
+  position: relative;
+}
+
+.progress .label-name {
+  position: absolute;
+  display: block;
+  color: black;
+}
+
+.progress .label-value {
+  position: absolute;
+  display: block;
+  left: 160px;
+  color: black;
 }

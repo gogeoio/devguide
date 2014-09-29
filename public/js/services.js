@@ -155,6 +155,30 @@ app.factory('services',
         };
 
         $http.post(url, params).success(callback);
+      },
+      geoAggUrl: function() {
+        var database = $rootScope.config.database;
+        var collection = $rootScope.config.collection;
+
+        var url = this.configureUrl();
+        url = url + '/geoagg/' + database + '/' + collection;
+
+        // Prevent angular cache
+        url = url + '?_=' + Math.random();
+
+        return url;
+      },
+      executeGeoAgg: function(geom, callback) {
+        var url = this.geoAggUrl();
+
+        var params = {
+          mapkey: $rootScope.config.mapkey,
+          geom: JSON.parse(geom),
+          field: 'category',
+          agg_size: 25
+        };
+
+        $http.post(url, params).success(callback);
       }
     }
   }

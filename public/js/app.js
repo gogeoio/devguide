@@ -29,3 +29,13 @@ app.run(
     );
   }
 );
+
+app.filter('formatNumber', function () {
+  return function (text) {
+    if (!text) {
+      return '';
+    }
+    text = $.number(parseInt(text), 0, '.', '.');
+    return text;
+  };
+});

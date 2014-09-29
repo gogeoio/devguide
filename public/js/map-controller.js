@@ -5,7 +5,7 @@
 function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
 
   // Global variables
-  $scope.zoom = 11;
+  $scope.zoom = 4;
   $scope.drawnItems = new L.FeatureGroup();
 
   // All goGeo layers
@@ -61,13 +61,14 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
           $scope.newGeom = null;
           $scope.drawnItems.clearLayers();
           $scope.handleLayers($scope.zoom);
+          $rootScope.$emit('event:executeGeoAgg', $scope.newGeom);
+          $rootScope.$emit('event:toggleGeoAgg', false);
         }
       );
     }
   );
 
   $scope.drawHandler = function(event) {
-
     var layer = event.layer;
 
     if (layer) {
@@ -81,6 +82,7 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
 
     $scope.newGeom = JSON.stringify(geojson.geometry);
     $scope.handleLayers($scope.zoom);
+    $rootScope.$emit('event:executeGeoAgg', $scope.newGeom);
   };
 
   // Add baselayer
@@ -202,6 +204,12 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
           }
         );
       }
+    }
+  );
+
+  $rootScope.$on('event:toggleGeoAgg',
+    function(event, toggle) {
+      $scope.showGeoAgg = toggle;
     }
   );
 

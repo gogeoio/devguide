@@ -1,7 +1,7 @@
 'use strict';
 
 function NavbarCtrl($scope, $rootScope, services) {
-  $scope.appVersion = '0.6.0';
+  $scope.appVersion = '0.7.0';
 
   $rootScope.$on('event:zoomChanged',
     function(event, zoom) {
@@ -122,5 +122,25 @@ function NavbarCtrl($scope, $rootScope, services) {
         }
       }
     }
+  };
+
+  /* ----------------------------------------------------------------------- */
+  /*                                                                         */
+  /*                             GeoAggregation                              */
+  /*                                                                         */
+  /* ----------------------------------------------------------------------- */
+
+  $scope.geoAgg = false;
+
+  $rootScope.$on('event:toggleGeoAgg',
+    function(event, toggle) {
+      $scope.geoAgg = toggle;
+    }
+  );
+
+  $scope.toggleGeoAgg = function() {
+    $scope.geoAgg = !$scope.geoAgg;
+
+    $rootScope.$emit('event:toggleGeoAgg', $scope.geoAgg);
   };
 }

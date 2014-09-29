@@ -1,7 +1,7 @@
 'use strict';
 
 function NavbarCtrl($scope, $rootScope, services) {
-  $scope.appVersion = '0.5.0';
+  $scope.appVersion = '0.6.0';
 
   $rootScope.$on('event:zoomChanged',
     function(event, zoom) {
@@ -26,7 +26,7 @@ function NavbarCtrl($scope, $rootScope, services) {
   // Change style of layer
   $scope.setLayerStyle = function(style) {
     if (style !== $scope.selectedStyle) {
-      $rootScope.$emit('event:changeStyle', style, $scope.selectedStyle);
+      $rootScope.$emit('event:changeStyle', style);
       $scope.selectedStyle = style;
     }
   };
@@ -90,5 +90,37 @@ function NavbarCtrl($scope, $rootScope, services) {
     }
 
     return cartoCss;
+  };
+
+  /* ----------------------------------------------------------------------- */
+  /*                                                                         */
+  /*                              Thematic Map                               */
+  /*                                                                         */
+  /* ----------------------------------------------------------------------- */
+
+  // Create a thematic map
+  $scope.createThematicMap = function(type) {
+
+    if (type !== $scope.selectedThematic) {
+      if (type === 'blank') {
+        $rootScope.$emit('event:toggleLegend', false);
+        $rootScope.$emit('event:toggleThematic', false);
+        $scope.selectedThematic = null;
+      } else {
+        $scope.selectedThematic = type;
+
+        if ($rootScope.styles.indexOf(type) == -1) {
+          services.createThematicMap(type,
+            function(result) {
+              $rootScope.$emit('event:toggleLegend', true, type, result.legend);
+              $rootScope.$emit('event:toggleThematic', true, type);
+            }
+          );
+        } else {
+          $rootScope.$emit('event:toggleLegend', true, type);
+          $rootScope.$emit('event:toggleThematic', true, type);
+        }
+      }
+    }
   };
 }

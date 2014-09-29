@@ -179,6 +179,32 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
     }
   );
 
+  $rootScope.$on('event:toggleThematic',
+    function(event, toggle, type) {
+      var overlays = $scope.gogeoLayers.overlays;
+
+      // Remove the old layer
+      $timeout(
+        function() {
+          delete overlays.thematic;
+        }
+      );
+
+      if (toggle) {
+        $timeout(
+          function() {
+            overlays.thematic = {
+              name: 'goGeo Thematic Layer - ' + type,
+              url: services.pngUrl($rootScope.config.thematicCollection, type),
+              type: 'xyz',
+              visible: true
+            };
+          }
+        );
+      }
+    }
+  );
+
   // Check what layer display
   $scope.handleLayers = function(zoom) {
     if (zoom) {
@@ -304,14 +330,14 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
         function() {
           overlays.points = {
             name: pngName,
-            url: services.pngUrl($scope.style, $scope.geom, $scope.query),
+            url: services.pngUrl($rootScope.config.collection, $scope.style, $scope.geom, $scope.query),
             type: 'xyz',
             visible: true
           };
 
           overlays.utfgrid = {
             name: utfName,
-            url: services.utfUrl($scope.style, $scope.geom, $scope.query),
+            url: services.utfUrl($rootScope.config.collection, $scope.style, $scope.geom, $scope.query),
             type: 'utfGrid',
             visible: true
           };

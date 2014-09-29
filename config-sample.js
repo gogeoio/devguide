@@ -5,5 +5,6 @@ module.exports = {
   "database": "YOUR_DATABASE",
   "collection": "YOUR_COLLECTION",
   "zoomToRenderPng": 15,
-  "subdomains": ['m1', 'm2', 'm3']
+  "subdomains": ['m1', 'm2', 'm3'],
+  'thematicCollection': ''
 };

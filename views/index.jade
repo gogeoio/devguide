@@ -24,6 +24,20 @@ block body
               a(href="javascript:", ng-click="applyStyle('marker')") Change marker
             li(class="{{selectedStyle == 'heat_map' ? 'active' : ''}}")
               a(href="javascript:", ng-click="applyStyle('heat_map')") Heatmap
+        li.dropdown
+            a.dropdown-toggle(href="javascript:", data-toggle="dropdown") Thematic Maps
+              span.caret
+            ul.dropdown-menu(role="menu")
+              li(class="{{ thematicType == 'blank' ? 'active' : '' }}")
+                a(href="#", ng-click="createThematicMap('blank')") Without thematic
+              li(class="{{ thematicType == 'population' ? 'active' : '' }}")
+                a(href="#", ng-click="createThematicMap('population')") Population
+              li(class="{{ thematicType == 'age_male' ? 'active' : '' }}")
+                a(href="#", ng-click="createThematicMap('age_male')") Age male
+              li(class="{{ thematicType == 'age_female' ? 'active' : '' }}")
+                a(href="#", ng-click="createThematicMap('age_female')") Age female
+              li(class="{{ thematicType == 'age_total' ? 'active' : '' }}")
+                a(href="#", ng-click="createThematicMap('age_total')") Age total
       ul.nav.navbar-nav.pull-right
         li
           ul.nav.navbar-nav
@@ -31,13 +45,22 @@ block body
               span.label.label-info Zoom: {{ zoom || '' }}
             li(style="margin-right: 5px;")
               span.label.label-info Type: {{ type || '' }}
+            li(ng-show="selectedThematic", style="margin-right: 5px;")
+              span.label.label-info Thematic: {{ selectedThematic || '' }}
   div(ng-controller="MapCtrl")
     leaflet(center="center", layers="gogeoLayers", defaults="defaults", controls="controls", height="900px", width="auto", style="margin-top: -20px;")
   div(ng-controller="QueryCtrl")
     .leaflet-control-search(id="search-div")
       a#search-icon(href="#", title="Search").leaflet-control-search-toggle
         span(style="font-size: 24px;").glyphicon.glyphicon-search
-        
+  .div(ng-controller="LegendCtrl")
+    #legend-div(ng-show="showLegend", ng-style="{ width: divWidth }")
+      #legend
+        .legend-title
+          b
+            span#legend-title Thematic map - {{ type }}
+        .legend-scale
+          ul#legend-labels.legend-labels
 
   script(src='js/lib/angular/angular.js')
   script(src='js/lib/angular/angular-route.js')
@@ -46,7 +69,9 @@ block body
   script(src='js/map-controller.js')
   script(src='js/navbar-controller.js')
   script(src='js/query-controller.js')
+  script(src='js/thematic-controller.js')
   script(src='js/lib/jquery/jquery-2.0.3.min.js')
+  script(src='js/lib/jquery/jquery.number.min.js')
   script(src='js/lib/leaflet/leaflet-src-0.7.3.js')
   script(src="js/lib/leaflet-plugins/cluster/leaflet.tilecluster.js")
   script(src='http://maps.google.com/maps/api/js?v=3.2&sensor=false')

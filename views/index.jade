@@ -28,15 +28,15 @@ block body
             a.dropdown-toggle(href="javascript:", data-toggle="dropdown") Thematic Maps
               span.caret
             ul.dropdown-menu(role="menu")
-              li(class="{{ thematicType == 'blank' ? 'active' : '' }}")
+              li(class="{{ selectedThematic == null ? 'active' : '' }}")
                 a(href="#", ng-click="createThematicMap('blank')") Without thematic
-              li(class="{{ thematicType == 'population' ? 'active' : '' }}")
+              li(class="{{ selectedThematic == 'population' ? 'active' : '' }}")
                 a(href="#", ng-click="createThematicMap('population')") Population
-              li(class="{{ thematicType == 'age_male' ? 'active' : '' }}")
+              li(class="{{ selectedThematic == 'age_male' ? 'active' : '' }}")
                 a(href="#", ng-click="createThematicMap('age_male')") Age male
-              li(class="{{ thematicType == 'age_female' ? 'active' : '' }}")
+              li(class="{{ selectedThematic == 'age_female' ? 'active' : '' }}")
                 a(href="#", ng-click="createThematicMap('age_female')") Age female
-              li(class="{{ thematicType == 'age_total' ? 'active' : '' }}")
+              li(class="{{ selectedThematic == 'age_total' ? 'active' : '' }}")
                 a(href="#", ng-click="createThematicMap('age_total')") Age total
       ul.nav.navbar-nav.pull-right
         li

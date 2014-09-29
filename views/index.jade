@@ -40,6 +40,8 @@ block body
               a(href="#", ng-click="createThematicMap('age_total')") Age total
         li(class="{{ geoAgg ? 'active' : '' }}")
           a(href="javascript:", ng-click="toggleGeoAgg()") GeoAggregation
+        li(class="{{ geoSearch ? 'active' : '' }}")
+          a(href="javascript:", ng-click="toggleGeoSearch()") GeoSearch
       ul.nav.navbar-nav.pull-right
         li
           ul.nav.navbar-nav
@@ -64,27 +66,28 @@ block body
         .legend-scale
           ul#legend-labels.legend-labels
   .div(ng-controller="GeoServicesCtrl")
-    #geoagg-result-div.well(ng-show="showGeoAgg")
-      #geoagg-result(ng-show="geoAggList && geoAggList.length > 0")
+    #geoagg-result-div.well(ng-show="showGeoAgg || showGeoSearch")
+      #geoagg-result
         .geoagg-result-subtitle
           .row
             .col-md-3.col-md-offset-3
-              h4 GeoAggregation
+              h4 {{ subtitle }}
 
-        .geoagg-result-title
+        .geoagg-result-title(ng-show="showGeoAgg || showGeoSearch")
           .row
             .col-md-3.col-md-offset-3
             .col-md-3.col-md-offset-1
               a(href="http://gogeo.io", target="_blank")
                 img(src="http://gogeo.io/static/img/gogeo-brand.png", height="200%", width="200%")
-        div
+
+        div(ng-show="showGeoAgg && geoAggList && geoAggList.length > 0")
           .row
             .col-lg-5
               b Total Count
             .col-lg-5
               h5#geoagg-result-qtd.pull-right {{ totalCount || 0 }}
 
-        .geoagg-result-div
+        .geoagg-result-div(ng-show="showGeoAgg")
           .col-lg-12
             table#geoagg-result-list
               tbody
@@ -94,7 +97,18 @@ block body
                       .progress-bar(role="progressbar", aria-valuenow="{{ item.percent }}", aria-valuemin="0", aria-valuemax="100", style="width: {{ item.percent }}%;")
                         .col-md-6.label-name {{ item.key }}
                         .col-md-6.label-value {{ item.doc_count | formatNumber }} ( {{ item.percent }} % )
-      #geoagg-result(ng-hide="geoAggList && geoAggList.length > 0")
+
+        .geoagg-result-div(ng-show="showGeoSearch")
+          .col-lg-12
+            table#geoagg-result-list
+              tbody
+                tr(ng-repeat="item in geoSearchList")
+                  td
+                    .row
+                      .row-fluid
+                        textarea(style="width: 100%; height: 180px;", disabled) {{ item | stringify }}
+
+      #geoagg-result(ng-show="((showGeoAgg && geoAggList.length == 0) || (showGeoSearch && geoSearchList.length == 0))")
         .well
           h3 Draw a spatial restriction first
   script(src='js/lib/angular/angular.js')

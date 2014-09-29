@@ -168,6 +168,19 @@ app.factory('services',
 
         return url;
       },
+      geoSearchUrl: function() {
+        var database = $rootScope.config.database;
+        var collection = $rootScope.config.collection;
+
+        var url = this.configureUrl();
+        url = url + '/map/' + database + '/' + collection;
+        url = url + '/geosearch';
+
+        // Prevent angular cache
+        url = url + '?_=' + Math.random();
+
+        return url;
+      },
       executeGeoAgg: function(geom, callback) {
         var url = this.geoAggUrl();
 
@@ -176,6 +189,26 @@ app.factory('services',
           geom: JSON.parse(geom),
           field: 'category',
           agg_size: 25
+        };
+
+        $http.post(url, params).success(callback);
+      },
+      executeGeoSearch: function(geom, callback) {
+        var url = this.geoSearchUrl();
+
+        var params = {
+          mapkey: $rootScope.config.mapkey,
+          geom: JSON.parse(geom),
+          terms: [ '*' ],
+          fields: [
+            'name',
+            'city',
+            'address',
+            'country',
+            'category',
+            'type'
+          ],
+          limit: 50
         };
 
         $http.post(url, params).success(callback);

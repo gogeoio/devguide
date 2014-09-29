@@ -61,8 +61,7 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
           $scope.newGeom = null;
           $scope.drawnItems.clearLayers();
           $scope.handleLayers($scope.zoom);
-          $rootScope.$emit('event:executeGeoAgg', $scope.newGeom);
-          $rootScope.$emit('event:toggleGeoAgg', false);
+          $rootScope.$emit('event:executeGeoService', $scope.newGeom);
         }
       );
     }
@@ -82,7 +81,7 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
 
     $scope.newGeom = JSON.stringify(geojson.geometry);
     $scope.handleLayers($scope.zoom);
-    $rootScope.$emit('event:executeGeoAgg', $scope.newGeom);
+    $rootScope.$emit('event:executeGeoService', $scope.newGeom);
   };
 
   // Add baselayer
@@ -207,11 +206,11 @@ function MapCtrl($scope, $rootScope, $timeout, services, leafletData) {
     }
   );
 
-  $rootScope.$on('event:toggleGeoAgg',
-    function(event, toggle) {
-      $scope.showGeoAgg = toggle;
-    }
-  );
+  /* ----------------------------------------------------------------------- */
+  /*                                                                         */
+  /*                             Handler layers                              */
+  /*                                                                         */
+  /* ----------------------------------------------------------------------- */
 
   // Check what layer display
   $scope.handleLayers = function(zoom) {

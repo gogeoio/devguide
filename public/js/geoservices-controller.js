@@ -1,27 +1,39 @@
 function GeoServicesCtrl($scope, $rootScope, services) {
 
   $scope.showGeoAgg = false;
+  $scope.showGeoSearch = false;
   $scope.geoAggList = [];
+  $scope.geoSearchList = [];
 
-  $rootScope.$on('event:executeGeoAgg',
+  $rootScope.$on('event:executeGeoService',
     function(event, geom) {
       if (!geom) {
         $scope.showGeoAgg = false;
+        $scope.showGeoSearch = false;
         $scope.geoAggList = [];
+        $scope.geoSearchList = [];
         $scope.totalCount = 0;
+
+        $rootScope.$emit('event:clearGeoServices');
       } else if ($scope.geom !== geom) {
         $scope.geom = geom;
 
         services.executeGeoAgg(geom,
           function(result) {
-            $scope.prepareList(result);
+            $scope.prepareGeoAggList(result);
+          }
+        );
+
+        services.executeGeoSearch(geom,
+          function(result) {
+            $scope.geoSearchList = result;
           }
         );
       }
     }
   );
 
-  $scope.prepareList = function(result) {
+  $scope.prepareGeoAggList = function(result) {
     var newList = [];
 
     $scope.totalCount = result.doc_total;
@@ -63,6 +75,18 @@ function GeoServicesCtrl($scope, $rootScope, services) {
   $rootScope.$on('event:toggleGeoAgg',
     function(event, toggle) {
       $scope.showGeoAgg = toggle;
+      if (toggle) {
+        $scope.subtitle = 'GeoAggregation';
+      }
+    }
+  );
+
+  $rootScope.$on('event:toggleGeoSearch',
+    function(event, toggle) {
+      $scope.showGeoSearch = toggle;
+      if (toggle) {
+        $scope.subtitle = 'GeoSearch';
+      }
     }
   );
 }

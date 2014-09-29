@@ -30,12 +30,40 @@ app.run(
   }
 );
 
-app.filter('formatNumber', function () {
-  return function (text) {
-    if (!text) {
-      return '';
-    }
-    text = $.number(parseInt(text), 0, '.', '.');
-    return text;
-  };
-});
+app.filter('formatNumber',
+  function () {
+    return function (text) {
+      if (!text) {
+        return '';
+      }
+      text = $.number(parseInt(text), 0, '.', '.');
+      return text;
+    };
+  }
+);
+
+app.filter('stringify',
+  function () {
+    return function (text) {
+      if (!text) {
+        return '';
+      }
+
+      try {
+        var parsed = text;
+
+        if (typeof text !== 'object') {
+          parsed = JSON.parse(text);
+        }
+
+        delete parsed.id;
+        delete parsed.$$hashKey;
+
+        var stringify = JSON.stringify(parsed, null, 2);
+        return stringify
+      } catch (e) {
+        return text;
+      }
+    };
+  }
+);

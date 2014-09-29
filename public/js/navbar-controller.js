@@ -1,7 +1,7 @@
 'use strict';
 
 function NavbarCtrl($scope, $rootScope, services) {
-  $scope.appVersion = '0.7.0';
+  $scope.appVersion = '0.8.0';
 
   $rootScope.$on('event:zoomChanged',
     function(event, zoom) {
@@ -126,21 +126,37 @@ function NavbarCtrl($scope, $rootScope, services) {
 
   /* ----------------------------------------------------------------------- */
   /*                                                                         */
-  /*                             GeoAggregation                              */
+  /*                      GeoAggregation and GeoSearch                       */
   /*                                                                         */
   /* ----------------------------------------------------------------------- */
 
   $scope.geoAgg = false;
-
-  $rootScope.$on('event:toggleGeoAgg',
-    function(event, toggle) {
-      $scope.geoAgg = toggle;
+  $scope.geoSearch = false;
+  
+  $rootScope.$on('event:clearGeoServices',
+    function(event) {
+      $scope.geoSearch = false;
+      $scope.geoAgg = false;
     }
   );
 
   $scope.toggleGeoAgg = function() {
     $scope.geoAgg = !$scope.geoAgg;
-
     $rootScope.$emit('event:toggleGeoAgg', $scope.geoAgg);
+
+    if ($scope.geoSearch) {
+      $scope.geoSearch = !$scope.geoSearch;
+      $rootScope.$emit('event:toggleGeoSearch', $scope.geoSearch);
+    }
+  };
+
+  $scope.toggleGeoSearch = function() {
+    $scope.geoSearch = !$scope.geoSearch;
+    $rootScope.$emit('event:toggleGeoSearch', $scope.geoSearch);
+
+    if ($scope.geoAgg) {
+      $scope.geoAgg = !$scope.geoAgg;
+      $rootScope.$emit('event:toggleGeoAgg', $scope.geoAgg);
+    }
   };
 }
